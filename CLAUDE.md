@@ -50,30 +50,31 @@ one-off seeding step when a routine is first added.
 The validator scans raw file text (not just parsed fields) for bare UUIDs and `trig_…`/`env_…`
 patterns, so a leaked id anywhere — including inside the prompt — fails CI.
 
-## Reconcile routine
+## Reconcile routine — disabled, documents an algorithm it cannot currently run itself
 
-`Reconcile routines with claude-routines` fires on every push to this repo (a GitHub push webhook
-via `RemoteTrigger create_webhook_trigger`, wired once by hand — never re-created by the routine
-itself) plus a daily fallback cron. The webhook's filter couldn't be scoped to `main` — the API
-rejected every branch-scoping key tried, only an empty filter was accepted — so it fires on a push
-to any branch; harmless, since the git source always clones `main` regardless, so an off-main push
-just costs one no-op pass. Each run it:
+`routines/reconcile-routines-with-claude-routines.yaml` documents the intended reconciliation
+algorithm (read every file, list live routines via `RemoteTrigger`, resolve `{{routine: …}}`
+placeholders, create/update to match, **disable** — never delete, the API can't — any live routine
+with no matching file, report to Slack, silent on a clean run) but its live routine is **disabled**.
+Its first real run (fired correctly by the push webhook — wired via `RemoteTrigger
+create_webhook_trigger`, once, by hand) discovered that `RemoteTrigger`, despite being accepted in
+`allowed_tools` at creation time, is not actually present inside a cloud routine's own session —
+confirmed by exhaustive `ToolSearch` calls inside that run, not merely an assumption. Every step of
+the algorithm needs it, so the routine can only ever fail; it correctly diagnosed this and posted an
+honest Slack failure notice instead of pretending to succeed, then was disabled to stop it repeating
+that failure daily.
 
-1. Reads every `routines/*.yaml` file.
-2. Lists live routines via `RemoteTrigger`, builds name→id / name→connector / id→environment
-   lookups from what's already live.
-3. Resolves `{{routine: …}}` placeholders using those lookups.
-4. Creates missing routines, updates drifted ones, leaves matching ones alone.
-5. **Disables** (never deletes — the API can't) any live routine whose name has no file here, and
-   reports it. A routine created by hand in the UI without a matching file gets disabled on the next
-   run — add its file in the same change you create it, or expect it to be turned off.
-6. Posts one Slack summary (`#l337-org`) naming everything it changed and any resolution failure it
-   hit. A clean run — repo and live state already agreed — posts nothing, matching every other
-   routine's silent-on-clean convention.
+**Applying a change is manual until this has a real mechanism.** From an interactive session that
+does have `RemoteTrigger` (or the `schedule` skill), read the changed file(s) and apply the same
+algorithm by hand. See the routine file's `note` for the candidate fixes under consideration (an
+interactive/human apply step permanently, vs. a scoped API credential a routine could call over
+plain HTTPS instead of the tool — the latter is a new stored-secret decision needing explicit
+sign-off, not something to build unprompted).
 
-Its own file, `routines/reconcile-routines-with-claude-routines.yaml`, is reconciled the same way as
-everything else — it is not special-cased in the repo, only in the one thing it must never do to
-itself (re-wire its own webhook).
+The webhook itself does fire correctly on every push to this repo (not scoped to `main` — the API
+rejected every branch-scoping key tried, only an empty filter was accepted — but harmless, since the
+git source always clones `main` regardless, so an off-main push would only ever cost one no-op
+pass); the gap is entirely in what the routine can do once it runs.
 
 ## Checklist when adding or changing a routine
 

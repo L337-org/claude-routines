@@ -4,14 +4,18 @@ Authoritative, version-controlled copies of every Claude cloud routine ("schedul
 running for L337-org, so the org's automation can be audited, reviewed via PR like any other
 change, and recreated on demand rather than existing only as opaque state in a web UI.
 
-**This repo is authoritative.** A routine's live configuration is a projection of its file here,
-never the other way round. The [`Reconcile routines with claude-routines`](routines/reconcile-routines-with-claude-routines.yaml)
-routine fires on every push to this repo (the webhook isn't scoped to `main` — see its file's `note`
-— but it always operates on `main`'s current content, plus a daily safety-net run) and pushes this repo's state
-onto the live account: creating routines that don't exist yet, updating ones that have drifted, and
-**disabling** — never deleting, the API doesn't allow it — any live routine with no matching file
-here. If you create a routine by hand in the UI, add its file here in the same change or the next
-sync will turn it off.
+**This repo is authoritative.** A routine's live configuration should be a projection of its file
+here, never the other way round.
+
+**Applying a change is currently manual, not automatic.** [`Reconcile routines with claude-routines`](routines/reconcile-routines-with-claude-routines.yaml)
+documents the intended algorithm (create what's missing, update what's drifted, disable — never
+delete, the API doesn't allow it — any live routine with no matching file here) but is **disabled**:
+its first real run confirmed that `RemoteTrigger`, despite being accepted in `allowed_tools` at
+creation time, is not actually available inside a cloud routine's own session, so it cannot list,
+create, update, or disable anything. Until that's resolved (see the routine file's `note` for the
+options under consideration), apply a merged change by hand — from an interactive Claude Code
+session that does have `RemoteTrigger` (or the `schedule` skill), read the changed file(s) and
+apply them following the same algorithm the disabled routine documents.
 
 ## Layout
 
@@ -31,7 +35,7 @@ for the checks that keep files honest.
   `connector_uuid`, and its `environment_id` are all reissued on restore, so none of them are
   stored raw. Each is referenced **by name** instead (`environment: Default`,
   `mcp_connectors: [Slack]`), and the sync routine resolves the current live id for that name each
-  time it runs. A prompt that needs to name a *sibling* routine (e.g. one routine triggering
+  time it runs (or would, once reconciliation runs anywhere). A prompt that needs to name a *sibling* routine (e.g. one routine triggering
   another) uses a `{{routine: <exact name>}}` placeholder rather than a hardcoded id — see
   `docker-py-sdk-audit-phase-1-detect.yaml` for a real example, and `schema/routine.md` for the
   convention. `scripts/validate_routines.py` fails the build if a raw id, uuid, or unresolved
@@ -55,18 +59,20 @@ routine's actual functional behaviour (which channel it posts to), not an artefa
 | [Glama listing drift check](routines/glama-listing-drift-check.yaml) | Weekly, Wed 08:00 | ✅ | docker-mcp | Checks docker-mcp's Glama.ai directory listing (grade, metadata) for drift from the live repo. |
 | [docker-py SDK audit (Phase 1 — detect)](routines/docker-py-sdk-audit-phase-1-detect.yaml) | Weekly, Mon 08:00 | ✅ | docker-mcp | Detects docker-py SDK coverage gaps / deprecated surface; files an issue and triggers Phase 2. |
 | [docker-py SDK audit (Phase 2 — draft PR)](routines/docker-py-sdk-audit-phase-2-draft-pr.yaml) | — (manual only) | ❌ | docker-mcp | Drafts a PR for an issue Phase 1 filed. Disabled by design — fires only when Phase 1 runs it. |
-| [Reconcile routines with claude-routines](routines/reconcile-routines-with-claude-routines.yaml) | Daily 06:00 + push webhook (any branch) | ✅ | claude-routines | Makes live routine config match this repo; disables anything live that isn't tracked here. |
+| [Reconcile routines with claude-routines](routines/reconcile-routines-with-claude-routines.yaml) | Daily 06:00 + push webhook (any branch) | ❌ (see note) | claude-routines | Documents the intended reconcile algorithm; disabled — cloud routines can't call `RemoteTrigger`. |
 
-## Recreating a routine
+## Recreating or updating a routine
 
-Read its file, then either use the `schedule` skill/`RemoteTrigger` API by hand, or just merge a
-change to `main` and let the reconcile routine create it for you. For a brand-new routine that
-needs an MCP connector not currently attached to anything live, attach the connector once via
-<https://claude.ai/customize/connectors> — the reconcile routine can't invent a connector id, only
-carry forward one that already exists on some live routine.
+Read its file, then apply it by hand from an interactive session with `RemoteTrigger` (or the
+`schedule` skill) — `RemoteTrigger action: "create"` / `"update"`, matching by exact `name`,
+resolving `environment`/`mcp_connectors` names and any `{{routine: …}}` placeholders to live ids
+yourself (see `schema/routine.md`). For a brand-new routine that needs an MCP connector not
+currently attached to anything live, attach the connector once via
+<https://claude.ai/customize/connectors> first — there's no way to invent a connector id, only carry
+forward one that already exists on some live routine.
 
 ## Making a change
 
 Edit the routine's YAML file (or add a new one) and open a PR as usual. `scripts/validate_routines.py`
-runs in CI. Once merged, the reconcile routine applies it to the live account within its next
-scheduled or webhook-triggered run.
+runs in CI. Once merged, apply it to the live account by hand (see above) until automatic
+reconciliation has a working mechanism.

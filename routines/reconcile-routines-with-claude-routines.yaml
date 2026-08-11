@@ -1,7 +1,7 @@
 name: "Reconcile routines with claude-routines"
-enabled: true
+enabled: false
 schedule:
-  cron: "0 6 * * *"  # UTC, 5-field — safety net only; the real trigger is the push webhook below
+  cron: "0 6 * * *"  # UTC, 5-field — irrelevant while disabled; see note
 model: claude-sonnet-5
 environment: Default
 repositories:
@@ -9,14 +9,30 @@ repositories:
 allowed_tools: [Bash, Read, Grep, Glob, RemoteTrigger]
 mcp_connectors: [Slack]
 note: >-
-  Also wired to a GitHub push webhook on this repo (via RemoteTrigger create_webhook_trigger — a
-  one-time setup action, not part of ordinary reconciliation, so this routine must never call
-  create_webhook_trigger itself). The webhook's own filter schema didn't accept any branch-scoping
-  key tried (`ref`/`branch`/`branches` all rejected as unknown fields, only `{}` was accepted), so
-  it fires on a push to ANY branch, not just `main` — harmless, since the git source below always
-  clones `main` regardless of which branch triggered the webhook, so an off-main push just causes an
-  extra no-op pass. The daily cron above is a further fallback in case a webhook event is ever
-  dropped or misconfigured, not the primary trigger.
+  DISABLED — confirmed non-functional, not merely untested. Its first real run (2026-08-11, fired
+  correctly by the push webhook described below) found that `RemoteTrigger` — declared in
+  `allowed_tools` and accepted without complaint at routine-creation time — is not actually present
+  in a cloud routine's own session; exhaustive `ToolSearch` calls for it inside that run turned up
+  nothing. Every step of this routine's job (list/create/update/disable live routines) needs
+  `RemoteTrigger`, so it can only ever fail. It correctly diagnosed this itself and posted a Slack
+  failure notice rather than pretending to succeed — that part worked exactly as intended; the
+  underlying capability did not. Left disabled pending a decision on how reconciliation should
+  actually run (candidates: an interactive/authenticated session applies this prompt's algorithm by
+  hand after a merge; a scoped API credential the routine could use over plain HTTPS instead of the
+  RemoteTrigger tool, which is a new stored-secret decision needing explicit sign-off, not something
+  to build unprompted; or accept this repo as documentation-plus-manual-apply only). The prompt below
+  is kept as the documented algorithm for whichever mechanism ends up running it — it is accurate
+  design, just not currently executable unattended.
+
+  It is also wired to a GitHub push webhook on this repo (via RemoteTrigger create_webhook_trigger —
+  a one-time setup action, not part of ordinary reconciliation, so this routine must never call
+  create_webhook_trigger itself, and this remains true whenever it's re-enabled). The webhook's own
+  filter schema didn't accept any branch-scoping key tried (`ref`/`branch`/`branches` all rejected as
+  unknown fields, only `{}` was accepted), so it fires on a push to ANY branch, not just `main` —
+  harmless on its own terms, since the git source below always clones `main` regardless of which
+  branch triggered the webhook, so an off-main push would just cause an extra no-op pass — moot while
+  disabled either way. The daily cron above was meant as a further fallback in case a webhook event
+  was ever dropped, not the primary trigger.
 prompt: |
   You run on every push to this repo (claude-routines) — the triggering webhook isn't scoped to
   `main` specifically, but you always operate on `main`'s current content regardless, since that's

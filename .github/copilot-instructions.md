@@ -41,14 +41,19 @@ the reverse.
 The validator scans raw file text for bare UUIDs and `trig_…`/`env_…` patterns, so a leaked id
 anywhere fails CI.
 
-## Reconcile routine
+## Reconcile routine — disabled, documents an algorithm it cannot currently run itself
 
-`Reconcile routines with claude-routines` fires on push to this repo (GitHub push webhook, wired
-once by hand; not scoped to `main` — the API rejected every branch-filter key tried — but harmless,
-since the git source always clones `main` regardless of which branch triggered it) plus a daily
-fallback cron: reads every routine file, lists live routines, resolves `{{routine: …}}`
-placeholders, creates/updates to match the repo, and **disables** (never deletes) any live routine
-with no matching file — reporting all of it to Slack, silently on a clean run.
+`routines/reconcile-routines-with-claude-routines.yaml` documents the intended reconciliation
+algorithm but its live routine is **disabled**: its first real run (correctly fired by the push
+webhook) found that `RemoteTrigger` — accepted in `allowed_tools` at creation time — is not actually
+available inside a cloud routine's own session, confirmed by exhaustive `ToolSearch` calls in that
+run. Every step needs it, so it can only fail; it correctly posted an honest Slack failure notice
+instead of pretending to succeed, then was disabled. **Apply a merged change by hand** from an
+interactive session with `RemoteTrigger` (or the `schedule` skill) until this has a real mechanism —
+see the routine file's `note` for candidate fixes (a permanent human-apply step, vs. a scoped API
+credential over plain HTTPS, which is a new stored-secret decision needing explicit sign-off). The
+webhook itself fires correctly on any push to this repo (not scoped to `main` — the API rejected
+every branch-filter key tried — but harmless, since the git source always clones `main` regardless).
 
 ## Review checklist for a PR touching `routines/*.yaml`
 
