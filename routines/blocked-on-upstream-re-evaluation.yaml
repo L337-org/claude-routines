@@ -10,7 +10,7 @@ repositories:
   - https://github.com/L337-org/homebrew-tap
 allowed_tools: [Bash, Read, Grep, Glob, WebFetch]
 mcp_connectors: [Slack]
-prompt: |
+prompt: |-
   You run monthly. Your single job: re-test whether things this org is deliberately BLOCKED ON UPSTREAM are still blocked. Each one below was a correct decision when taken, with a written reason. Reasons expire silently, and nothing else re-checks them — that is why you exist.
 
   You are READ-ONLY. Never bump a version, never edit a file, never open a PR or an issue, never commit. You report to Slack and nothing else.

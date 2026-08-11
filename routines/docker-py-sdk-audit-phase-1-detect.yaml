@@ -8,7 +8,7 @@ repositories:
   - https://github.com/L337-org/docker-mcp
 allowed_tools: [Bash, Read, Grep, Glob, RemoteTrigger, WebFetch]
 mcp_connectors: [Slack]
-prompt: |
+prompt: |-
   You maintain the docker-py SDK migration story for the docker-mcp project (repo: L337-org/docker-mcp). You run weekly.
 
   0. Before anything else, two checks:

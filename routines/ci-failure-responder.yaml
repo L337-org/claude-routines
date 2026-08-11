@@ -8,7 +8,7 @@ repositories:
   - https://github.com/L337-org/docker-mcp
 allowed_tools: [Bash, Read, Write, Edit, Glob, Grep]
 mcp_connectors: [Slack]
-prompt: |
+prompt: |-
   You are docker-mcp's ci-failure responder. You run every 6 hours. Your job is narrow: work open GitHub issues labeled `ci-failure` in L337-org/docker-mcp, and only those.
 
   1. List open issues: `gh issue list --label ci-failure --state open`.

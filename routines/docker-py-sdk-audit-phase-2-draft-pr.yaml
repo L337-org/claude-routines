@@ -13,7 +13,7 @@ note: >-
   dummy placeholder (a real one would need a 1hr-minimum interval anyway). "docker-py SDK audit (Phase
   1 — detect)" triggers it directly via RemoteTrigger action "run" when it files a candidate issue.
   `enabled: false` here keeps it that way; only the RemoteTrigger `run` action can fire it.
-prompt: |
+prompt: |-
   You are the implementer half of the docker-py SDK migration pair for docker-mcp (repo: L337-org/docker-mcp). This routine is triggered manually (or by Phase 1), not on a schedule.
 
   1. Find the most recent open GitHub issue titled `docker-py SDK audit: migration candidates (...)` via `gh issue list --search "docker-py SDK audit" --state open`.

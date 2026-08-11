@@ -9,7 +9,7 @@ repositories:
 allowed_tools: [Bash, Read, Grep, Glob, WebFetch]
 mcp_connectors: [Slack]
 network_allowlist: [glama.ai]
-prompt: |
+prompt: |-
   Check the docker-mcp MCP server's third-party Glama listing for unexpected drift, then judge — don't just mechanically diff — whether it matters.
 
   1. Fetch https://glama.ai/api/mcp/v1/servers/L337-org/docker-mcp for the live listing.

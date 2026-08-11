@@ -10,7 +10,7 @@ repositories:
 allowed_tools: [Bash, Read, Write, Edit, Glob, Grep]
 mcp_connectors: [Slack]
 network_allowlist: [apt.l337.org]
-prompt: |
+prompt: |-
   You are the ci-failure responder for the send-to-influx project. You run every 6 hours. Your job is to notice failed CI runs, record them as GitHub issues, close ones that have gone away, and where safe, propose a fix.
 
   You watch TWO repositories:
