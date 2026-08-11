@@ -22,12 +22,16 @@ prompt: |-
   ruleset-managed check, not one of ours. It doesn't block merge (it isn't a required status
   check), so its failure only means Copilot's own review didn't happen for that push, not a code
   defect. Handle it separately from the steps below: if the branch is gone or the PR is already
-  merged/closed, there's nothing to do — the review window has passed. If it fails on a
-  **still-open PR**, post one line to Slack naming the PR and stating Copilot review didn't
-  complete on the latest push, so a human can decide whether to re-request it before merging. Do
-  not open a `ci-failure` issue for this — it isn't a defect in our code or CI. If you see it fail
-  across several different PRs in the same run, that's a Copilot/GitHub-side issue, not a per-PR
-  one — say so once, not per PR.
+  merged/closed, there's nothing to do — the review window has passed. Collect every *still-open*
+  PR it fails on across this run before deciding how to report:
+    - **Exactly one** affected PR: post one Slack line naming that PR (repo, number, title) and
+      stating Copilot review didn't complete on its latest push, so a human can decide whether to
+      re-request it before merging.
+    - **More than one** affected PR: post a single combined Slack message listing every affected
+      PR (repo, number, title) rather than one message each — failing across several PRs in the
+      same run points to a Copilot/GitHub-side issue rather than a per-PR one, and naming all of
+      them in one message says so without either spamming Slack or losing which PRs are affected.
+  Do not open a `ci-failure` issue for this either way — it isn't a defect in our code or CI.
 
   1. For each repo, list recent failed runs: `gh run list --repo <repo> --status failure --limit 20`. Only consider runs on the default branch or on an open PR — ignore runs on deleted branches.
 
