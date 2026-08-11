@@ -72,13 +72,15 @@ Same rules as the rest of L337-org: no direct commits to `main`, PR + ≥1 appro
 review, squash-only, signed commits, resolved threads, Copilot review, required status checks green
 (`Validate routines`). `CODEOWNERS`: `@GavinLucas @claudeleet`.
 
-**None of this is enforced yet.** GitHub gates repository rulesets and classic branch protection
-entirely behind "public repo, or Pro/Team plan" — confirmed by testing (`enforcement: "active"` and
-`"disabled"` both get `403 Upgrade to GitHub Pro or make this repository public`), so nothing can be
-held dormant in GitHub itself while private on the free plan. The intended ruleset is checked in at
-[`.github/rulesets/main.json`](.github/rulesets/main.json) instead — apply with
-`gh api -X POST repos/L337-org/claude-routines/rulesets --input .github/rulesets/main.json` the
-moment visibility or plan changes. Keep it in sync with `docker-mcp`'s own `main` ruleset shape.
+**Most of this is enforced already**, via a `main` ruleset created and maintained through the
+GitHub **web UI**, checked in for reference at
+[`.github/rulesets/main.json`](.github/rulesets/main.json) and kept in sync with `docker-mcp`'s own
+`main` ruleset shape by hand. The one exception: **"Require review from Code Owners" is gated
+behind a public repo or paid plan even in the UI**, so it's off until this repo goes public — the
+one item on the "revisit when public" list, not a general gap. The REST and GraphQL **write** APIs
+are blocked entirely for this repo regardless of visibility while private (`gh api` and a GraphQL
+`updateRepositoryRuleset` mutation both 403; GraphQL reads work fine), so treat ruleset changes as
+**UI-only while private**.
 
 ## Visibility
 

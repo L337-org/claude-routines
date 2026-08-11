@@ -92,19 +92,21 @@ Same rules as the rest of L337-org: no direct commits to `main`, PR + ≥1 appro
 review, squash-only, signed commits, resolved threads, Copilot review, required status checks green
 (`Validate routines`). `CODEOWNERS`: `@GavinLucas @claudeleet`.
 
-**None of this is currently enforced.** GitHub gates repository rulesets (and classic branch
-protection) entirely behind "public repo, or Pro/Team plan" — confirmed by testing, not assumed:
-creating a ruleset here returns `403 Upgrade to GitHub Pro or make this repository public`
-regardless of `enforcement: "active"` vs `"disabled"`, so there is no way to hold a dormant
-definition in GitHub itself while this repo is private on the org's free plan. The intended
-configuration is instead checked in at [`.github/rulesets/main.json`](.github/rulesets/main.json) —
-apply it the moment visibility or plan changes:
-```
-gh api -X POST repos/L337-org/claude-routines/rulesets --input .github/rulesets/main.json
-```
-Keep that file in sync with `docker-mcp`'s own `main` ruleset shape (its `required_status_checks`
-is this repo's own CI job name, `Validate routines`, and it omits `code_scanning`/`code_quality`
-since this repo ships no application code to scan).
+**Most of this is enforced already**, via a `main` ruleset created and maintained through the GitHub
+**web UI** (not the API — see below), checked in for reference at
+[`.github/rulesets/main.json`](.github/rulesets/main.json) and kept in sync with `docker-mcp`'s own
+`main` ruleset shape by hand (its `required_status_checks` is this repo's own CI job name, `Validate
+routines`, and it omits `code_scanning`/`code_quality` since this repo ships no application code to
+scan). **The one exception is "Require review from Code Owners"** — gated behind a public repo or a
+paid plan even in the UI, so it's off until this repo goes public; that's the one item on the
+"revisit when public" list, not a general enforcement gap.
+
+The REST **and** GraphQL write APIs are blocked entirely for a private repo on the org's free plan
+— confirmed by testing both, not assumed: `gh api` create/update and a GraphQL
+`updateRepositoryRuleset` mutation all return `403 Upgrade to GitHub Pro or make this repository
+public`, regardless of `enforcement: "active"` vs `"disabled"`. GraphQL *reads* work fine (that's
+how the ruleset's live state gets diffed against `.github/rulesets/main.json`), so treat any
+future ruleset change as **UI-only while private** — don't reach for `gh api` expecting it to work.
 
 ## Visibility
 
