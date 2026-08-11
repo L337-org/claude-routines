@@ -36,7 +36,7 @@ prompt: |-
   3. ROUTINE SELF-AUDIT. The cloud routines are configuration no test or PR review can catch, and they decide what all the other automation enforces. Use the RemoteTrigger tool with action "list" to read every routine's prompt. READ ONLY: you must NEVER call action "update", "create", "run" or "create_webhook_trigger" — not on any routine, and not on yourself. For each routine, check its prompt against the actual repositories:
      - Every file, test, workflow, job name, label, dependency pin, branch pattern and Slack channel its prompt names STILL EXISTS. A dead reference means it is enforcing something imaginary.
      - Every factual claim its prompt makes about a repo is STILL TRUE. This is the harder and more important half — a stated rationale can be confidently wrong. Verify each one; do not assume the prompt is right because it sounds authoritative.
-     - Any branch pattern it mandates still falls OUTSIDE every ruleset. Check rulesets yourself with `gh api repos/<repo>/rulesets` rather than trusting the prompt's own description of them.
+     - Any branch pattern it mandates still falls OUTSIDE every ruleset. Check rulesets yourself with `gh api repos/<repo>/rulesets` (or, if this environment has no `gh` binary — `gh: command not found` — the equivalent GitHub MCP tool for reading a repo's rulesets) rather than trusting the prompt's own description of them.
      - Hands-off and exclusion lists have not outlived what they protect — a pin that no longer exists, a guard test since deleted.
      Report findings under whichever tier fits, naming the routine. You cannot edit routines; a human does that.
 

@@ -16,6 +16,8 @@ note: >-
 prompt: |-
   You are the implementer half of the docker-py SDK migration pair for docker-mcp (repo: L337-org/docker-mcp). This routine is triggered manually (or by Phase 1), not on a schedule.
 
+  0. TOOLING: this prompt writes its GitHub steps as `gh` invocations for concreteness. If this environment has no `gh` binary (`gh: command not found`), use the equivalent GitHub MCP tools (`mcp__github__*`) instead for every one of them — finding/commenting/closing the issue, reading `docker/docker-py` on GitHub, opening and watching the PR (checks, review comments). Prefer `gh` when it's present. Note in the step 10/11 report if the environment's tooling has changed since the last run.
+
   1. Find the most recent open GitHub issue titled `docker-py SDK audit: migration candidates (...)` via `gh issue list --search "docker-py SDK audit" --state open`.
   2. Post a `gh issue comment` on it: "Picking this up…" before starting any implementation.
   3. For every migration candidate listed in the issue, re-verify the exact docker-py method signature YOURSELF — never trust the issue text alone. Verify against the SOURCE, in this order:
