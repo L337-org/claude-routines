@@ -52,9 +52,12 @@ patterns, so a leaked id anywhere — including inside the prompt — fails CI.
 
 ## Reconcile routine
 
-`Reconcile routines with claude-routines` fires on every push to `main` (a GitHub push webhook via
-`RemoteTrigger create_webhook_trigger`, wired once by hand — never re-created by the routine itself)
-plus a daily fallback cron. Each run it:
+`Reconcile routines with claude-routines` fires on every push to this repo (a GitHub push webhook
+via `RemoteTrigger create_webhook_trigger`, wired once by hand — never re-created by the routine
+itself) plus a daily fallback cron. The webhook's filter couldn't be scoped to `main` — the API
+rejected every branch-scoping key tried, only an empty filter was accepted — so it fires on a push
+to any branch; harmless, since the git source always clones `main` regardless, so an off-main push
+just costs one no-op pass. Each run it:
 
 1. Reads every `routines/*.yaml` file.
 2. Lists live routines via `RemoteTrigger`, builds name→id / name→connector / id→environment

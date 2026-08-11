@@ -43,10 +43,12 @@ anywhere fails CI.
 
 ## Reconcile routine
 
-`Reconcile routines with claude-routines` fires on push to `main` (GitHub push webhook, wired once
-by hand) plus a daily fallback cron: reads every routine file, lists live routines, resolves
-`{{routine: …}}` placeholders, creates/updates to match the repo, and **disables** (never deletes)
-any live routine with no matching file — reporting all of it to Slack, silently on a clean run.
+`Reconcile routines with claude-routines` fires on push to this repo (GitHub push webhook, wired
+once by hand; not scoped to `main` — the API rejected every branch-filter key tried — but harmless,
+since the git source always clones `main` regardless of which branch triggered it) plus a daily
+fallback cron: reads every routine file, lists live routines, resolves `{{routine: …}}`
+placeholders, creates/updates to match the repo, and **disables** (never deletes) any live routine
+with no matching file — reporting all of it to Slack, silently on a clean run.
 
 ## Review checklist for a PR touching `routines/*.yaml`
 

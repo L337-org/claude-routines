@@ -9,13 +9,18 @@ repositories:
 allowed_tools: [Bash, Read, Grep, Glob, RemoteTrigger]
 mcp_connectors: [Slack]
 note: >-
-  Also wired to a GitHub push webhook on this repo's `main` branch (via RemoteTrigger
-  create_webhook_trigger — a one-time setup action, not part of ordinary reconciliation, so this
-  routine must never call create_webhook_trigger itself), so a merge to main fires it directly. The
-  daily cron above is a fallback in case a webhook event is ever dropped or misconfigured, not the
-  primary trigger.
+  Also wired to a GitHub push webhook on this repo (via RemoteTrigger create_webhook_trigger — a
+  one-time setup action, not part of ordinary reconciliation, so this routine must never call
+  create_webhook_trigger itself). The webhook's own filter schema didn't accept any branch-scoping
+  key tried (`ref`/`branch`/`branches` all rejected as unknown fields, only `{}` was accepted), so
+  it fires on a push to ANY branch, not just `main` — harmless, since the git source below always
+  clones `main` regardless of which branch triggered the webhook, so an off-main push just causes an
+  extra no-op pass. The daily cron above is a further fallback in case a webhook event is ever
+  dropped or misconfigured, not the primary trigger.
 prompt: |
-  You run on every push to `main` of this repo (claude-routines), plus once daily as a safety net.
+  You run on every push to this repo (claude-routines) — the triggering webhook isn't scoped to
+  `main` specifically, but you always operate on `main`'s current content regardless, since that's
+  what your git source clones — plus once daily as a safety net.
   Your job: make the live routines in this Claude account match the `routines/*.yaml` files in this
   repo, exactly. THIS REPO IS ALWAYS AUTHORITATIVE — you only ever push repo state onto the live
   account, never the reverse, and you never modify a file in this repo.

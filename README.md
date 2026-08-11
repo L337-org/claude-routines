@@ -6,7 +6,8 @@ change, and recreated on demand rather than existing only as opaque state in a w
 
 **This repo is authoritative.** A routine's live configuration is a projection of its file here,
 never the other way round. The [`Reconcile routines with claude-routines`](routines/reconcile-routines-with-claude-routines.yaml)
-routine fires on every push to `main` (plus a daily safety-net run) and pushes this repo's state
+routine fires on every push to this repo (the webhook isn't scoped to `main` — see its file's `note`
+— but it always operates on `main`'s current content, plus a daily safety-net run) and pushes this repo's state
 onto the live account: creating routines that don't exist yet, updating ones that have drifted, and
 **disabling** — never deleting, the API doesn't allow it — any live routine with no matching file
 here. If you create a routine by hand in the UI, add its file here in the same change or the next
@@ -54,7 +55,7 @@ routine's actual functional behaviour (which channel it posts to), not an artefa
 | [Glama listing drift check](routines/glama-listing-drift-check.yaml) | Weekly, Wed 08:00 | ✅ | docker-mcp | Checks docker-mcp's Glama.ai directory listing (grade, metadata) for drift from the live repo. |
 | [docker-py SDK audit (Phase 1 — detect)](routines/docker-py-sdk-audit-phase-1-detect.yaml) | Weekly, Mon 08:00 | ✅ | docker-mcp | Detects docker-py SDK coverage gaps / deprecated surface; files an issue and triggers Phase 2. |
 | [docker-py SDK audit (Phase 2 — draft PR)](routines/docker-py-sdk-audit-phase-2-draft-pr.yaml) | — (manual only) | ❌ | docker-mcp | Drafts a PR for an issue Phase 1 filed. Disabled by design — fires only when Phase 1 runs it. |
-| [Reconcile routines with claude-routines](routines/reconcile-routines-with-claude-routines.yaml) | Daily 06:00 + push-to-`main` webhook | ✅ | claude-routines | Makes live routine config match this repo; disables anything live that isn't tracked here. |
+| [Reconcile routines with claude-routines](routines/reconcile-routines-with-claude-routines.yaml) | Daily 06:00 + push webhook (any branch) | ✅ | claude-routines | Makes live routine config match this repo; disables anything live that isn't tracked here. |
 
 ## Recreating a routine
 
