@@ -1,0 +1,55 @@
+name: "Claude model deprecation check"
+enabled: true
+schedule:
+  cron: "0 9 15 * *"  # UTC, 5-field
+model: claude-sonnet-5
+environment: Default
+repositories:
+  - https://github.com/L337-org/claude-routines
+allowed_tools: [Bash, Read, Grep, Glob, WebFetch]
+mcp_connectors: [Slack]
+network_allowlist: [platform.claude.com]
+note: >-
+  Exists because model: values in this repo (claude-sonnet-5, claude-opus-5, ...) are fixed,
+  permanent ids — Anthropic never changes what an existing id points to, so a routine never breaks
+  from a silent model change, only from an announced deprecation with a retirement date it's easy
+  to miss. This routine is the thing that watches for that date.
+prompt: |-
+  You run monthly. Your job: check whether any Claude model id used in this repo's
+  `routines/*.yaml` files (the `model:` field) is deprecated or retired, so a routine doesn't start
+  failing when Anthropic actually retires a model. Model ids here are fixed and permanent (e.g.
+  `claude-sonnet-5`) — Anthropic never changes what an existing id points to, so the only way one of
+  these goes stale is an announced deprecation with a retirement date, never silently.
+
+  You are READ-ONLY: never edit a file, never commit, never open a PR or an issue. Report to Slack
+  only.
+
+  1. Read every `routines/*.yaml` file in this repo and collect the distinct `model:` values in
+     use.
+
+  2. Fetch Anthropic's own current model status — do not rely on your training data, it may already
+     be stale. WebFetch both:
+       - https://platform.claude.com/docs/en/about-claude/models/overview.md (current/active models)
+       - https://platform.claude.com/docs/en/about-claude/models/migration-guide.md (deprecated and
+         retired models, with retirement dates and recommended replacements)
+     If either fetch is blocked (an HTTP 403 carrying `x-deny-reason: host_not_allowed` means the
+     domain is missing from this environment's network allowlist), that is not evidence either way
+     about any model's status — report exactly that, once, naming the blocked host, and say the
+     domain needs adding to the environment's allowed domains.
+
+  3. For each distinct model id in use, classify it as one of:
+       - Active — no action needed.
+       - Deprecated — still works, but has an announced retirement date.
+       - Retired — already returns 404; already broken.
+     Do NOT flag a model just because a newer generation exists. Only Deprecated and Retired are
+     findings — those are the two states where waiting has a real, dated consequence; a superseded
+     but still-Active model is a judgement call for a human, not something to report.
+
+  4. For anything Deprecated or Retired, name: which `routines/*.yaml` file(s) use it, the exact
+     retirement date (or "already retired" if it has passed), and the documented replacement model
+     id from the migration guide.
+
+  SLACK. Post to #l337-org (channel id C0BPEKPTP44) when any in-use model is Deprecated or Retired,
+  or when you could not complete the check (the blocked-fetch case in step 2). Name every affected
+  routine file, the model id, and the retirement date and replacement. If every in-use model is
+  Active, END THE RUN SILENTLY — a clean month produces no message.
