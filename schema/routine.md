@@ -15,7 +15,7 @@ the exact rules.
 | `allowed_tools` | yes | list of strings | Tool names the routine's session may use. |
 | `mcp_connectors` | no | list of strings | MCP connector **names** (e.g. `Slack`), never `connector_uuid`. |
 | `network_allowlist` | no | list of hostnames | Domains this routine's cloud environment needs on its outbound allowlist to do its job (bare hostnames, no scheme/path). Best-effort — populated from domains a routine's own prompt explicitly names as required, not an exhaustive audit of every fetch target. Extend it when a routine reports a blocked domain it needs. |
-| `note` | no | string | Context for a human reading this file. Not part of the live routine config — the reconcile routine ignores it. |
+| `note` | no | string | Context for a human reading this file. Not part of the live routine config. |
 | `prompt` | yes | string (block literal) | The routine's full instructions, verbatim, except for cross-routine references (see below). |
 
 ## Why no raw ids
@@ -25,8 +25,8 @@ account-specific and get reissued the moment a routine is recreated — restorin
 a different account, or even re-creating in the same account, produces new values. Storing them
 would be both a minor privacy leak (they identify this specific account's internal state) and dead
 weight: useless the moment they'd actually be needed. So every one of them is named, not quoted, and
-resolved to a live id at apply time by the reconcile routine. This is the general form of "don't
-store the routine's own URL" — the URL is just the most visible instance of the same problem.
+resolved to a live id by hand when a change is applied. This is the general form of "don't store the
+routine's own URL" — the URL is just the most visible instance of the same problem.
 
 ## Cross-routine references
 
@@ -37,7 +37,7 @@ another via `RemoteTrigger action: "run"`) uses a placeholder instead of a hardc
 {{routine: Exact Sibling Routine Name}}
 ```
 
-The reconcile routine substitutes the sibling's current live id for this placeholder each time it
-applies a file. `scripts/validate_routines.py` fails the build if a placeholder names a routine that
+Whoever applies a file substitutes the sibling's current live id for this placeholder by hand.
+`scripts/validate_routines.py` fails the build if a placeholder names a routine that
 doesn't exist anywhere in this repo, or if a raw `trig_…`/`env_…` id or bare UUID appears anywhere
 in a file (the tell that someone pasted live state directly instead of using a name).

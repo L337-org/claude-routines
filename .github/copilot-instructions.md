@@ -1,8 +1,8 @@
 # GitHub Copilot Instructions
 
 This file provides guidance to GitHub Copilot when working with code in this repository. It mirrors
-`CLAUDE.md` — see the MIRROR RULE at the top of that file. Any change to the schema, the reconcile
-routine's behaviour, or the redaction rules below must update both files together.
+`CLAUDE.md` — see the MIRROR RULE at the top of that file. Any change to the schema or the redaction
+rules below must update both files together.
 
 ## Project
 
@@ -20,8 +20,6 @@ the reverse.
   `schema/routine.md`.
 - `scripts/validate_routines.py` — schema and redaction checks, run in CI
   (`.github/workflows/validate.yaml`) on every push and PR, required on `main`.
-- `routines/reconcile-routines-with-claude-routines.yaml` — the routine that applies this repo to
-  the live account, tracked here like any other routine.
 
 ## Redaction rules (enforced by `scripts/validate_routines.py`, not just convention)
 
@@ -31,8 +29,8 @@ the reverse.
    `name` string**, never by id.
 3. **No other account-specific id, for the identical reason** — `connector_uuid` and
    `environment_id` are reissued on restore too. Reference them by **name**
-   (`environment: Default`, `mcp_connectors: [Slack]`); the reconcile routine resolves the current
-   live id for that name at apply time.
+   (`environment: Default`, `mcp_connectors: [Slack]`); resolved to the current live id by hand at
+   apply time.
 4. **A cross-routine reference inside a `prompt` uses `{{routine: <exact name>}}`**, never a
    hardcoded `trigger_id`.
 5. **Slack channel names/ids are the one exception** — kept as-is; a channel isn't reissued on
@@ -41,19 +39,19 @@ the reverse.
 The validator scans raw file text for bare UUIDs and `trig_…`/`env_…` patterns, so a leaked id
 anywhere fails CI.
 
-## Reconcile routine — disabled, documents an algorithm it cannot currently run itself
+## Applying changes to the live account
 
-`routines/reconcile-routines-with-claude-routines.yaml` documents the intended reconciliation
-algorithm but its live routine is **disabled**: its first real run (correctly fired by the push
-webhook) found that `RemoteTrigger` — accepted in `allowed_tools` at creation time — is not actually
-available inside a cloud routine's own session, confirmed by exhaustive `ToolSearch` calls in that
-run. Every step needs it, so it can only fail; it correctly posted an honest Slack failure notice
-instead of pretending to succeed, then was disabled. **Apply a merged change by hand** from an
-interactive session with `RemoteTrigger` (or the `schedule` skill) until this has a real mechanism —
-see the routine file's `note` for candidate fixes (a permanent human-apply step, vs. a scoped API
-credential over plain HTTPS, which is a new stored-secret decision needing explicit sign-off). The
-webhook itself fires correctly on any push to this repo (not scoped to `main` — the API rejected
-every branch-filter key tried — but harmless, since the git source always clones `main` regardless).
+There is no automatic apply step, permanently — a settled platform limitation, not a gap waiting on
+a fix. A cloud routine cannot call `RemoteTrigger`: a routine built for exactly this purpose (read
+this repo, reconcile the live account) searched exhaustively for it at runtime and found nothing,
+despite `RemoteTrigger` being accepted in its `allowed_tools` at creation time. Separately, there is
+no API for creating, updating, or listing routines at all — routine management only works from a
+session with a claude.ai subscription login (web UI, Desktop app, or CLI); a stored API credential
+for an unattended process was ruled out because no such credential exists for this API, not because
+of a risk tradeoff. **Apply a merged change by hand** from an interactive session with
+`RemoteTrigger` (or the `schedule` skill): resolve `environment`/`mcp_connectors` names and any
+`{{routine: …}}` placeholders to live ids, then create/update matching by exact `name`. Never delete
+a live routine whose file was removed here — the API can't anyway — disable it instead.
 
 ## Review checklist for a PR touching `routines/*.yaml`
 
@@ -62,9 +60,9 @@ every branch-filter key tried — but harmless, since the git source always clon
 - A cross-routine reference uses `{{routine: <exact name>}}`, and that name exists somewhere in this
   repo.
 - `README.md`'s summary table reflects the change.
-- Renaming a routine's `name` is delete+create, not a rename, on the live side — the old name gets
-  disabled as an orphan on the next reconcile run, which is expected but worth calling out in the
-  PR description.
+- Renaming a routine's `name` is delete+create, not a rename, on the live side — whoever next
+  applies this repo by hand should disable the old name as an orphan, which is expected but worth
+  calling out in the PR description.
 
 ## Git and pull requests
 
