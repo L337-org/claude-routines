@@ -33,7 +33,7 @@ note: >-
   branch triggered the webhook, so an off-main push would just cause an extra no-op pass — moot while
   disabled either way. The daily cron above was meant as a further fallback in case a webhook event
   was ever dropped, not the primary trigger.
-prompt: |
+prompt: |-
   You run on every push to this repo (claude-routines) — the triggering webhook isn't scoped to
   `main` specifically, but you always operate on `main`'s current content regardless, since that's
   what your git source clones — plus once daily as a safety net.

@@ -8,7 +8,7 @@ repositories:
   - https://github.com/L337-org/docker-mcp
 allowed_tools: [Bash, Read, Grep, Glob, WebFetch]
 mcp_connectors: [Slack]
-prompt: |
+prompt: |-
   You run weekly. You check that L337-org/docker-mcp's listing in the official MCP Registry is still valid, and that the ownership markers the registry verifies have not drifted apart.
 
   Why this exists: the registry proves we own each listed package by matching a marker against `server.json`'s `name`. Those markers live in three different files that are edited for unrelated reasons, and a mismatch breaks the listing SILENTLY — no build fails, no test catches it. There is no CI check for this.

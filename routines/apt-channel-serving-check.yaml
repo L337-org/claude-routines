@@ -10,7 +10,7 @@ repositories:
 allowed_tools: [Bash, Read, Grep, Glob, WebFetch]
 mcp_connectors: [Slack]
 network_allowlist: [apt.l337.org]
-prompt: |
+prompt: |-
   You run daily. Your job is to confirm that the APT channel at https://apt.l337.org/ ACTUALLY SERVES an installable, current package — from the outside, as a user would see it.
 
   Why this exists: L337-org/apt's `aggregate.yaml` workflow reports on its own execution. A green workflow proves the job ran, NOT that the channel is serving. Those are different claims, and only the second one matters to someone running `apt install`. You are the only check on the second.
