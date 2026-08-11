@@ -72,21 +72,16 @@ Same rules as the rest of L337-org: no direct commits to `main`, PR + ≥1 appro
 review, squash-only, signed commits, resolved threads, Copilot review, required status checks green
 (`Validate routines`). `CODEOWNERS`: `@GavinLucas @claudeleet`.
 
-**A `main` ruleset is configured but NOT enforced**, matching `docker-mcp`'s own `main` ruleset,
-checked in for reference at [`.github/rulesets/main.json`](.github/rulesets/main.json) and kept in
-sync by hand. Repository rulesets/branch protection for a private repo require GitHub
-Pro/Team/Enterprise (confirmed against GitHub's own plans/pricing pages), which this org isn't on.
-The GitHub **web UI** lets you build and save the ruleset object regardless — that's how this one
-got created — but a saved, active-flagged ruleset on a private Free-plan repo does not actually
-block a non-compliant push or merge. Don't describe it as enforced without a real test proving it
-blocks something, not just the object existing. It starts enforcing the moment this repo goes
-public or the org upgrades plan, no rebuild needed. "Require review from Code Owners" is
-additionally unset even as configuration — the UI itself refuses that one sub-option while private.
-The REST and GraphQL **write** APIs are blocked entirely for this repo regardless of visibility
-while private (`gh api` and a GraphQL `updateRepositoryRuleset` mutation both 403; GraphQL reads
-work fine), so any ruleset change while private has to go through the UI.
+A `main` ruleset enforces all of this, matching `docker-mcp`'s own `main` ruleset — deletion/
+force-push/signature protection, 1 approval with required code-owner review, dismiss stale reviews,
+resolved threads required, squash-only, Copilot review on every push, `Validate routines` as the
+required status check. It's checked in for reference at
+[`.github/rulesets/main.json`](.github/rulesets/main.json) — keep it in sync by hand if the live
+ruleset changes.
 
 ## Visibility
 
-Private for now, revisit once the redaction rules above have been in place for a while. Going
-public is also what activates the ruleset above.
+Public, matching every other L337-org repo. Reviewed for content before publishing: no secrets, no
+issue keys or wiki links, no raw account-specific ids (enforced by `scripts/validate_routines.py` in
+CI). The audit/review heuristics a routine's prompt documents are public in the same sense this
+org's CI configuration already is.

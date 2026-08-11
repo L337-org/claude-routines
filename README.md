@@ -74,30 +74,6 @@ forward one that already exists on some live routine.
 ## Making a change
 
 Edit the routine's YAML file (or add a new one) and open a PR as usual. `scripts/validate_routines.py`
-runs in CI. Once merged, apply it to the live account by hand (see above) until automatic
-reconciliation has a working mechanism.
-
-## Branch protection
-
-A `main` ruleset is **configured but not enforced** — matching `docker-mcp`'s own `main` ruleset:
-deletion/force-push/signature protection, 1 approval, dismiss stale reviews, resolved threads
-required, squash-only, Copilot review on every push, `Validate routines` as the required status
-check. Repository rulesets and branch protection for a *private* repo require GitHub Pro/Team/
-Enterprise ([confirmed against GitHub's own plans/pricing pages](https://docs.github.com/en/get-started/learning-about-github/githubs-plans)),
-which this org is not on — the GitHub **web UI** happily lets you build and save the ruleset object
-regardless (that's how it got created and how `review_on_push` got flipped on), but a saved,
-`enforcement: "ACTIVE"`-flagged ruleset on a private Free-plan repo does not actually block a
-non-compliant push or merge. It's checked in for reference at
-[`.github/rulesets/main.json`](.github/rulesets/main.json), kept in sync by hand, and starts
-actually enforcing the moment this repo goes public (or the org upgrades plan) — no rebuild needed,
-it's already sitting there correctly configured.
-
-**"Require review from Code Owners" is additionally unset** even as configuration — that specific
-sub-option is refused by the UI itself while private, unlike the rest of the ruleset which the UI
-lets you save (just not enforce). Turn it on once public, alongside everything else starting to
-take effect.
-
-The REST **and** GraphQL write APIs are blocked entirely for this repo regardless of enforcement
-state — `gh api` create/update and a GraphQL `updateRepositoryRuleset` mutation both return `403
-Upgrade to GitHub Pro or make this repository public`; only GraphQL reads work. So any future
-ruleset edit while private has to go through the UI, not a script.
+runs in CI, and a `main` ruleset (checked in at [`.github/rulesets/main.json`](.github/rulesets/main.json),
+matching `docker-mcp`'s own) enforces review before merge. Once merged, apply it to the live account
+by hand (see above) until automatic reconciliation has a working mechanism.
