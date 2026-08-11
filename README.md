@@ -60,6 +60,7 @@ routine's actual functional behaviour (which channel it posts to), not an artefa
 | [docker-py SDK audit (Phase 1 — detect)](routines/docker-py-sdk-audit-phase-1-detect.yaml) | Weekly, Mon 08:00 | ✅ | docker-mcp | Detects docker-py SDK coverage gaps / deprecated surface; files an issue and triggers Phase 2. |
 | [docker-py SDK audit (Phase 2 — draft PR)](routines/docker-py-sdk-audit-phase-2-draft-pr.yaml) | — (manual only) | ❌ | docker-mcp | Drafts a PR for an issue Phase 1 filed. Disabled by design — fires only when Phase 1 runs it. |
 | [Reconcile routines with claude-routines](routines/reconcile-routines-with-claude-routines.yaml) | Daily 06:00 + push webhook (any branch) | ❌ (see note) | claude-routines | Documents the intended reconcile algorithm; disabled — cloud routines can't call `RemoteTrigger`. |
+| [Claude model deprecation check](routines/claude-model-deprecation-check.yaml) | Monthly, 15th 09:00 | ✅ | claude-routines | Checks every `model:` value used in this repo against Anthropic's published deprecation/retirement dates. |
 
 ## Recreating or updating a routine
 
