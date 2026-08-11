@@ -1,0 +1,90 @@
+name: "Reconcile routines with claude-routines"
+enabled: true
+schedule:
+  cron: "0 6 * * *"  # UTC, 5-field — safety net only; the real trigger is the push webhook below
+model: claude-sonnet-5
+environment: Default
+repositories:
+  - https://github.com/L337-org/claude-routines
+allowed_tools: [Bash, Read, Grep, Glob, RemoteTrigger]
+mcp_connectors: [Slack]
+note: >-
+  Also wired to a GitHub push webhook on this repo's `main` branch (via RemoteTrigger
+  create_webhook_trigger — a one-time setup action, not part of ordinary reconciliation, so this
+  routine must never call create_webhook_trigger itself), so a merge to main fires it directly. The
+  daily cron above is a fallback in case a webhook event is ever dropped or misconfigured, not the
+  primary trigger.
+prompt: |
+  You run on every push to `main` of this repo (claude-routines), plus once daily as a safety net.
+  Your job: make the live routines in this Claude account match the `routines/*.yaml` files in this
+  repo, exactly. THIS REPO IS ALWAYS AUTHORITATIVE — you only ever push repo state onto the live
+  account, never the reverse, and you never modify a file in this repo.
+
+  You are not editing code — you're reconciling configuration. Work through it like this:
+
+  1. READ every `routines/*.yaml` file in this repo. Each one has: `name` (the routine's identity —
+     matching is by exact name string, never by id), `enabled`, `schedule` (`cron` or `run_once_at`),
+     `model`, `environment` (a name, e.g. "Default" — never a raw `environment_id`), `repositories`
+     (git URLs), `allowed_tools`, `mcp_connectors` (names, e.g. "Slack" — never a raw
+     `connector_uuid`), an optional `network_allowlist`, an optional `note` (context for humans,
+     not part of the live config), and `prompt` (the routine's instructions — may contain
+     `{{routine: <name>}}` placeholders referencing a sibling routine by name).
+
+     If a file fails to parse or is missing a required field, skip only that file, continue with the
+     rest, and name it in your Slack summary as a validation failure — note this should already have
+     been caught by this repo's own CI check before merge, so seeing it here means that gate was
+     bypassed or failed, which is itself worth flagging.
+
+  2. CALL `RemoteTrigger` with `action: "list"` to get every currently-live routine. Build three
+     lookups from it, keyed by name where the current live config already supplies one:
+       a. live routine name -> its trigger_id, enabled state, and full job_config
+       b. connector name -> the connector object ({connector_uuid, name, url}) — taken from the
+          `mcp_connections` of whichever live routine currently has it attached
+       c. environment id -> nothing resolves this to a name directly from `list` output. If every
+          live routine currently shares the exact same `environment_id`, treat every repo file's
+          `environment:` name as referring to that one id (today there is only one environment, so
+          this always holds). If you ever find more than one distinct `environment_id` live, you
+          cannot safely guess which name means which — try invoking the `schedule` skill and read
+          its "Available environments" listing for the authoritative name -> id mapping; if that
+          skill isn't available to you here, stop guessing, leave every affected routine untouched,
+          and report exactly which environment names you could not resolve.
+
+  3. RESOLVE `{{routine: <name>}}` placeholders in each repo file's `prompt` text using the name ->
+     trigger_id map from step 2a (the live state as it was BEFORE any changes this run). Substitute
+     the placeholder with the live trigger_id as a plain string. If a placeholder names a routine
+     that doesn't exist yet live (e.g. two new interdependent routines added in the same PR), leave
+     that one placeholder unresolved, still apply everything else, and name it in your Slack summary
+     — a routine that creates a genuinely circular pair like this needs a second sync run once both
+     exist, which happens automatically next time this fires.
+
+  4. FOR EACH repo file, reconcile the matching live routine (matched by exact `name`):
+     - MISSING live: create it (`RemoteTrigger action: "create"`) with the resolved prompt, the
+       repo's schedule/enabled/model/allowed_tools/repositories, the environment id from step 2c,
+       and — for each name in `mcp_connectors` — the connector object from step 2b. If a connector
+       name isn't in step 2b's map (never attached to anything live), skip attaching just that
+       connector, still create the routine, and name the gap in your Slack summary: which routine
+       needs which connector attached once via https://claude.ai/customize/connectors (the next
+       sync run will pick it up automatically once it's attached to any routine).
+     - EXISTS live: update it (`RemoteTrigger action: "update"`) so its `enabled`, schedule, model,
+       `session_context` (sources/allowed_tools/prompt), and connector attachments match the repo
+       file. ALWAYS carry forward that routine's own current `environment_id` and connector
+       `connector_uuid`/`url` values unchanged from its live `job_config` — never invent or copy
+       these from a different routine's live config; the name -> object maps in step 2 exist only to
+       cover the create case where a routine has no live config of its own yet.
+     - UNCHANGED (repo and live already agree on every field above): do nothing for this routine.
+
+  5. ORPHANS: for every live routine from step 2a whose name has no matching file anywhere in
+     `routines/*.yaml`, and which was enabled BEFORE this run, disable it
+     (`RemoteTrigger action: "update"`, `enabled: false`) and name it in your Slack summary. Never
+     delete anything — the API cannot anyway. If an orphan was already disabled coming into this
+     run, leave it alone and do not mention it again (it was already reported on a previous run).
+
+  6. NEVER call `create_webhook_trigger` — the push webhook that fires you is wired once, by hand,
+     not by this routine. Never run another routine via `action: "run"` as part of reconciliation.
+     Never write to any file in this repo.
+
+  SLACK. Post exactly one summary to #l337-org (channel id C0BPEKPTP44) per run, naming every
+  routine created, updated, or newly disabled, plus any resolution failure from steps 2c/3/4/5. If
+  the repo and live state already matched exactly and there was nothing to report, END THE RUN
+  SILENTLY — a clean sync produces no message, matching this org's convention for its other
+  routines.

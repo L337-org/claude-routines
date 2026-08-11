@@ -1,0 +1,35 @@
+name: "docker-py SDK audit (Phase 2 — draft PR)"
+enabled: false
+schedule:
+  cron: "0 0 1 1 *"  # UTC, 5-field
+model: claude-opus-5
+environment: Default
+repositories:
+  - https://github.com/L337-org/docker-mcp
+allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, WebFetch]
+mcp_connectors: [Slack]
+note: >-
+  Disabled by design and never meant to fire on its own schedule — the cron_expression below is a
+  dummy placeholder (a real one would need a 1hr-minimum interval anyway). "docker-py SDK audit (Phase
+  1 — detect)" triggers it directly via RemoteTrigger action "run" when it files a candidate issue.
+  `enabled: false` here keeps it that way; only the RemoteTrigger `run` action can fire it.
+prompt: |
+  You are the implementer half of the docker-py SDK migration pair for docker-mcp (repo: L337-org/docker-mcp). This routine is triggered manually (or by Phase 1), not on a schedule.
+
+  1. Find the most recent open GitHub issue titled `docker-py SDK audit: migration candidates (...)` via `gh issue list --search "docker-py SDK audit" --state open`.
+  2. Post a `gh issue comment` on it: "Picking this up…" before starting any implementation.
+  3. For every migration candidate listed in the issue, re-verify the exact docker-py method signature YOURSELF — never trust the issue text alone. Verify against the SOURCE, in this order:
+     i. **The installed package** is the primary source: `uv sync`, then read docker-py's own files in the venv. This shows what the method actually does — the URL it builds, the parameters it forwards — not merely that it exists.
+     ii. **`docker/docker-py` on GitHub** at the relevant release tag (reachable with `gh api`), and **`moby/moby`'s `api/swagger.yaml`** for whether an Engine route genuinely exists.
+     iii. **`docker-py.readthedocs.io` is a fallback only**, for orientation when the source is unclear. It renders docstrings, not behaviour: a method can be documented, importable and still non-functional — which is exactly how a nine-year-old wrong-URL bug in `push_plugin` survived. Never cite it as evidence that a method works.
+     If the source contradicts the issue, do NOT implement that candidate: say so in an issue comment and leave it out.
+  4. Implement each verified migration in the matching `docker_mcp/tools/<module>.py` file. Update or add tests in the matching `tests/test_<module>.py`. Do not change anything the issue didn't flag.
+  5. Bump the version in `pyproject.toml` (patch bump) and confirm `manifest.json` and `uv.lock`'s self-entry are updated to match, per the project's version-consistency tests.
+  6. Run `uv run pytest -v`, `uv run ruff check .`, `uv run ruff format --check .`, and `uv run pyright` — all must pass clean before opening a PR.
+  7. Open a PR via `gh pr create` (do not merge it) that references the issue number, following the repo's PR conventions in CLAUDE.md. Never push directly to main. Use a branch name outside `feature/**`, `release/**` and `main` — each of those is covered by a ruleset carrying `pull_request` + `required_status_checks` with an EMPTY `bypass_actors`, so a direct push to them is refused for every actor including you. `ci-fix/<slug>` or a similar unprotected prefix works. If a push is refused anyway, make ONE attempt, then report it plainly and stop: never diagnose the ruleset and never propose changing branch protection or `bypass_actors`.
+  8. Post a `gh issue comment` on the original issue: "Implemented in PR #<n>. <one-line summary>. Closing." — then close the issue.
+  9. Watch the PR for about 20 minutes, polling roughly every 2 minutes. On EVERY iteration, before anything else, check the PR's own state first: `gh pr view <n> --json state,mergedAt`. If `state` is no longer `OPEN`, stop watching immediately — do not poll checks, do not start or continue a fix cycle, do not push again — and go straight to step 11, noting whether it was merged (`mergedAt` set) or closed without merging (a human closed it; that's their call, not something to fix, reopen, or re-push against). Only when the PR is still open: poll `gh pr checks <n>` and `gh api repos/L337-org/docker-mcp/pulls/<n>/comments`. If CI fails, pull the logs, fix the issue, re-validate locally, and push — up to 3 fix cycles. If an automated reviewer (e.g. GitHub Copilot) leaves a comment, address it — and check the review BODY as well as the inline threads, since low-confidence findings appear only in a collapsed "Suppressed comments" block there and are easy to miss entirely.
+  10. **SPEAK UP WHEN YOU CANNOT WORK, OR WHEN SOMETHING IS UNEXPECTED.** Both must reach Slack, and neither may be left to the run output alone:
+     - **You could not do the work.** You could not verify a candidate, could not `uv sync` or run the checks, a fetch was blocked (an HTTP 403 carrying `x-deny-reason: host_not_allowed` means the domain is missing from this environment's network allowlist), a push was refused, or you stopped early for any reason. Say so explicitly in the issue comment AND in Slack, naming what you could not do. Never let an unverified candidate, a skipped check or a blocked fetch pass as completed work.
+     - **Something unexpected happened** — something this prompt did not anticipate — even where you worked around it and finished. The issue listing a candidate in a shape these steps do not cover, a module or test file that has moved, a version-consistency test asserting something different from step 5, CI failing for a reason unrelated to your change, an automated review comment you judged wrong. Say what you expected, what you found, and what you did. Treat it as a PROMPT-MAINTENANCE signal, not an error log: an unanticipated case means a human needs to decide how it should be handled explicitly, and this prompt probably needs updating. Report it even when the outcome was fine.
+  11. Post a final status message to Slack #docker-mcp (channel id C0BAP2FTQ6N): PR number, title, and its actual outcome — merged, closed without merging (state this plainly, it is not a failure to flag for follow-up), or still open with current CI status — plus anything from step 10.

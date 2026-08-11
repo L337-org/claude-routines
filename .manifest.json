@@ -1,0 +1,72 @@
+[
+  [
+    "MCP surface standard audit",
+    "mcp-surface-standard-audit",
+    true,
+    "0 9 8 * *",
+    "Audits docker-mcp/send-to-influx MCP tool surfaces against the org's AI-consumer tool-quality standard."
+  ],
+  [
+    "MCP Registry marker drift",
+    "mcp-registry-marker-drift",
+    true,
+    "30 8 * * 3",
+    "Checks docker-mcp's MCP Registry ownership markers and listing haven't drifted from server.json."
+  ],
+  [
+    "APT channel serving check",
+    "apt-channel-serving-check",
+    true,
+    "40 7 * * *",
+    "Confirms the apt.l337.org APT channel actually serves an installable package, from the outside."
+  ],
+  [
+    "Blocked-on-upstream re-evaluation",
+    "blocked-on-upstream-re-evaluation",
+    true,
+    "0 9 1 * *",
+    "Re-tests recorded upstream blockers (e.g. Homebrew dylib issue) to see if any have cleared."
+  ],
+  [
+    "Weekly standards reminder (org)",
+    "weekly-standards-reminder-org",
+    true,
+    "15 8 * * 5",
+    "Org-wide sweep for policy drift (action pins, lockfiles, docs mirrors, CI coverage, .github content) across all repos."
+  ],
+  [
+    "send-to-influx ci-failure responder",
+    "send-to-influx-ci-failure-responder",
+    true,
+    "49 */6 * * *",
+    "Triages open ci-failure issues on send-to-influx/apt: investigates, fixes, or stands down for a human."
+  ],
+  [
+    "ci-failure responder",
+    "ci-failure-responder",
+    true,
+    "8 */6 * * *",
+    "Triages open ci-failure issues on docker-mcp: investigates, fixes, or stands down for a human."
+  ],
+  [
+    "Glama listing drift check",
+    "glama-listing-drift-check",
+    true,
+    "0 8 * * 3",
+    "Checks docker-mcp's Glama.ai directory listing (grade, metadata) for drift from the live repo."
+  ],
+  [
+    "docker-py SDK audit (Phase 1 \u2014 detect)",
+    "docker-py-sdk-audit-phase-1-detect",
+    true,
+    "0 8 * * 1",
+    "Detects docker-py SDK coverage gaps / deprecated surface against the latest published release; files an issue and triggers Phase 2."
+  ],
+  [
+    "docker-py SDK audit (Phase 2 \u2014 draft PR)",
+    "docker-py-sdk-audit-phase-2-draft-pr",
+    false,
+    "0 0 1 1 *",
+    "Manually/self-triggered: drafts a PR implementing an issue filed by Phase 1. Disabled \u2014 runs only via RemoteTrigger, never on its own schedule."
+  ]
+]
