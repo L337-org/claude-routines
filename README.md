@@ -74,6 +74,5 @@ forward one that already exists on some live routine.
 ## Making a change
 
 Edit the routine's YAML file (or add a new one) and open a PR as usual. `scripts/validate_routines.py`
-runs in CI, and a `main` ruleset (checked in at [`.github/rulesets/main.json`](.github/rulesets/main.json),
-matching `docker-mcp`'s own) enforces review before merge. Once merged, apply it to the live account
-by hand (see above) until automatic reconciliation has a working mechanism.
+runs in CI. Once merged, apply it to the live account by hand (see above) until automatic
+reconciliation has a working mechanism.
