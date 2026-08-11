@@ -76,21 +76,3 @@ forward one that already exists on some live routine.
 Edit the routine's YAML file (or add a new one) and open a PR as usual. `scripts/validate_routines.py`
 runs in CI. Once merged, apply it to the live account by hand (see above) until automatic
 reconciliation has a working mechanism.
-
-## Branch protection
-
-A `main` ruleset is live, created and maintained through the GitHub **web UI** — matching
-`docker-mcp`'s own `main` ruleset: deletion/force-push/signature protection, 1 approval, dismiss
-stale reviews, resolved threads required, squash-only, Copilot review on every push, `Validate
-routines` as the required status check. It's checked in for reference at
-[`.github/rulesets/main.json`](.github/rulesets/main.json), kept in sync by hand when either
-changes.
-
-**The one thing not set: "Require review from Code Owners."** That specific sub-option is gated
-behind a public repo or a paid plan even in the UI — everything else in the ruleset above is not,
-which corrected an earlier assumption here that the whole feature was blocked while private. (The
-REST **and** GraphQL write APIs genuinely are blocked entirely for this repo — `gh api` and a
-GraphQL `updateRepositoryRuleset` mutation both return `403 Upgrade to GitHub Pro or make this
-repository public`; only GraphQL reads work. So this ruleset can only be edited through the UI while
-private, not scripted.) Turn on "Require review from Code Owners" the moment this repo goes public —
-noted as a to-do, not yet done.

@@ -92,25 +92,19 @@ Same rules as the rest of L337-org: no direct commits to `main`, PR + ≥1 appro
 review, squash-only, signed commits, resolved threads, Copilot review, required status checks green
 (`Validate routines`). `CODEOWNERS`: `@GavinLucas @claudeleet`.
 
-**Most of this is enforced already**, via a `main` ruleset created and maintained through the GitHub
-**web UI** (not the API — see below), checked in for reference at
-[`.github/rulesets/main.json`](.github/rulesets/main.json) and kept in sync with `docker-mcp`'s own
-`main` ruleset shape by hand (its `required_status_checks` is this repo's own CI job name, `Validate
+A `main` ruleset enforces all of this, matching `docker-mcp`'s own `main` ruleset — deletion/
+force-push/signature protection, 1 approval with required code-owner review, dismiss stale reviews,
+resolved threads required, squash-only, Copilot review on every push, `Validate routines` as the
+required status check. It's checked in for reference at
+[`.github/rulesets/main.json`](.github/rulesets/main.json) — keep the file in sync by hand if the
+live ruleset changes (its `required_status_checks` is this repo's own CI job name, `Validate
 routines`, and it omits `code_scanning`/`code_quality` since this repo ships no application code to
-scan). **The one exception is "Require review from Code Owners"** — gated behind a public repo or a
-paid plan even in the UI, so it's off until this repo goes public; that's the one item on the
-"revisit when public" list, not a general enforcement gap.
-
-The REST **and** GraphQL write APIs are blocked entirely for a private repo on the org's free plan
-— confirmed by testing both, not assumed: `gh api` create/update and a GraphQL
-`updateRepositoryRuleset` mutation all return `403 Upgrade to GitHub Pro or make this repository
-public`, regardless of `enforcement: "active"` vs `"disabled"`. GraphQL *reads* work fine (that's
-how the ruleset's live state gets diffed against `.github/rulesets/main.json`), so treat any
-future ruleset change as **UI-only while private** — don't reach for `gh api` expecting it to work.
+scan).
 
 ## Visibility
 
-Private for now — this repo carries the full operating instructions of every org routine, which
-isn't necessary to publish for the "recreate on demand" goal even though none of it is secret. This
-is also the reason nothing above is enforced yet (see the ruleset note above) — going public is
-what would activate it, "when it would be needed most anyway."
+Public, matching every other L337-org repo. Reviewed for content before publishing: no secrets,
+no issue keys or wiki links, no raw account-specific ids (enforced by `scripts/validate_routines.py`
+in CI). The audit/review heuristics a routine's prompt documents (e.g. what `ci-failure responder`
+treats as flaky-vs-real) are public in the same sense this org's CI configuration already is —
+not a meaningfully greater disclosure.

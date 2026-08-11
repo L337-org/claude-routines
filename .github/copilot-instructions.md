@@ -72,17 +72,16 @@ Same rules as the rest of L337-org: no direct commits to `main`, PR + ≥1 appro
 review, squash-only, signed commits, resolved threads, Copilot review, required status checks green
 (`Validate routines`). `CODEOWNERS`: `@GavinLucas @claudeleet`.
 
-**Most of this is enforced already**, via a `main` ruleset created and maintained through the
-GitHub **web UI**, checked in for reference at
-[`.github/rulesets/main.json`](.github/rulesets/main.json) and kept in sync with `docker-mcp`'s own
-`main` ruleset shape by hand. The one exception: **"Require review from Code Owners" is gated
-behind a public repo or paid plan even in the UI**, so it's off until this repo goes public — the
-one item on the "revisit when public" list, not a general gap. The REST and GraphQL **write** APIs
-are blocked entirely for this repo regardless of visibility while private (`gh api` and a GraphQL
-`updateRepositoryRuleset` mutation both 403; GraphQL reads work fine), so treat ruleset changes as
-**UI-only while private**.
+A `main` ruleset enforces all of this, matching `docker-mcp`'s own `main` ruleset — deletion/
+force-push/signature protection, 1 approval with required code-owner review, dismiss stale reviews,
+resolved threads required, squash-only, Copilot review on every push, `Validate routines` as the
+required status check. It's checked in for reference at
+[`.github/rulesets/main.json`](.github/rulesets/main.json) — keep it in sync by hand if the live
+ruleset changes.
 
 ## Visibility
 
-Private for now, revisit once the redaction rules above have been in place for a while. Going
-public is also what activates the ruleset above.
+Public, matching every other L337-org repo. Reviewed for content before publishing: no secrets, no
+issue keys or wiki links, no raw account-specific ids (enforced by `scripts/validate_routines.py` in
+CI). The audit/review heuristics a routine's prompt documents are public in the same sense this
+org's CI configuration already is.
