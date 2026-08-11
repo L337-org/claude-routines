@@ -13,10 +13,26 @@ the exact rules.
 | `environment` | yes | string | The environment's **name** (e.g. `Default`), never its `environment_id`. See "Why no raw ids" below. |
 | `repositories` | yes | list of URLs | `https://github.com/...` sources the routine's session is given. |
 | `allowed_tools` | yes | list of strings | Tool names the routine's session may use. |
-| `mcp_connectors` | no | list of strings | MCP connector **names** (e.g. `Slack`), never `connector_uuid`. |
+| `mcp_connectors` | no | list of strings | MCP connector **names** (e.g. `Slack`) attached via <https://claude.ai/customize/connectors>, never `connector_uuid`. **Never list `GitHub` here** — see "GitHub access is not a connector" below. |
 | `network_allowlist` | no | list of hostnames | Domains this routine's cloud environment needs on its outbound allowlist to do its job (bare hostnames, no scheme/path). Best-effort — populated from domains a routine's own prompt explicitly names as required, not an exhaustive audit of every fetch target. Extend it when a routine reports a blocked domain it needs. |
 | `note` | no | string | Context for a human reading this file. Not part of the live routine config. |
 | `prompt` | yes | string (block literal) | The routine's full instructions, verbatim, except for cross-routine references (see below). |
+
+## GitHub access is not a connector
+
+A routine's GitHub tool access (`mcp__github__*` — reading/creating issues, PRs, releases,
+rulesets, and so on) is provisioned automatically from its `repositories:` grant, not from
+`mcp_connectors`. Checked directly against the live account (`RemoteTrigger action: "list"`, not
+assumed): every routine in this repo currently shows exactly one entry in its live
+`mcp_connections` — `Slack` — including routines whose prompts rely on GitHub MCP tools as a
+fallback and have used them successfully in a real run. There is no attachable "GitHub" connector
+in this account's connector settings for one to point at.
+
+**Never add `GitHub` (or similar) to a routine's `mcp_connectors` list.** Unlike `Slack`, it would
+not resolve to any live `connector_uuid`, so it would only make the file look like it needs an
+attach step that doesn't exist — the applier would go looking for a GitHub connector and find
+none. A routine's GitHub access follows from its `repositories:` entry alone and needs no
+declaration here.
 
 ## Why no raw ids
 
