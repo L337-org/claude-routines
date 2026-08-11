@@ -72,6 +72,15 @@ Same rules as the rest of L337-org: no direct commits to `main`, PR + ≥1 appro
 review, squash-only, signed commits, resolved threads, Copilot review, required status checks green
 (`Validate routines`). `CODEOWNERS`: `@GavinLucas @claudeleet`.
 
+**None of this is enforced yet.** GitHub gates repository rulesets and classic branch protection
+entirely behind "public repo, or Pro/Team plan" — confirmed by testing (`enforcement: "active"` and
+`"disabled"` both get `403 Upgrade to GitHub Pro or make this repository public`), so nothing can be
+held dormant in GitHub itself while private on the free plan. The intended ruleset is checked in at
+[`.github/rulesets/main.json`](.github/rulesets/main.json) instead — apply with
+`gh api -X POST repos/L337-org/claude-routines/rulesets --input .github/rulesets/main.json` the
+moment visibility or plan changes. Keep it in sync with `docker-mcp`'s own `main` ruleset shape.
+
 ## Visibility
 
-Private for now, revisit once the redaction rules above have been in place for a while.
+Private for now, revisit once the redaction rules above have been in place for a while. Going
+public is also what activates the ruleset above.

@@ -83,8 +83,8 @@ pass); the gap is entirely in what the routine can do once it runs.
 3. Update the summary table in `README.md`.
 4. `.github/copilot-instructions.md` — mirror any structural/convention change here too (see the
    MIRROR RULE above).
-5. Open a PR; CI runs `scripts/validate_routines.py`. Merge applies it via the reconcile routine —
-   Done never waits on a manual apply step.
+5. Open a PR; CI runs `scripts/validate_routines.py`. Merge, then apply it to the live account by
+   hand (see "Reconcile routine" above) — there is currently no automatic apply step.
 
 ## Git and pull requests
 
@@ -92,8 +92,23 @@ Same rules as the rest of L337-org: no direct commits to `main`, PR + ≥1 appro
 review, squash-only, signed commits, resolved threads, Copilot review, required status checks green
 (`Validate routines`). `CODEOWNERS`: `@GavinLucas @claudeleet`.
 
+**None of this is currently enforced.** GitHub gates repository rulesets (and classic branch
+protection) entirely behind "public repo, or Pro/Team plan" — confirmed by testing, not assumed:
+creating a ruleset here returns `403 Upgrade to GitHub Pro or make this repository public`
+regardless of `enforcement: "active"` vs `"disabled"`, so there is no way to hold a dormant
+definition in GitHub itself while this repo is private on the org's free plan. The intended
+configuration is instead checked in at [`.github/rulesets/main.json`](.github/rulesets/main.json) —
+apply it the moment visibility or plan changes:
+```
+gh api -X POST repos/L337-org/claude-routines/rulesets --input .github/rulesets/main.json
+```
+Keep that file in sync with `docker-mcp`'s own `main` ruleset shape (its `required_status_checks`
+is this repo's own CI job name, `Validate routines`, and it omits `code_scanning`/`code_quality`
+since this repo ships no application code to scan).
+
 ## Visibility
 
 Private for now — this repo carries the full operating instructions of every org routine, which
-isn't necessary to publish for the "recreate on demand" goal even though none of it is secret.
-Revisit once the redaction rules above have been in place for a while.
+isn't necessary to publish for the "recreate on demand" goal even though none of it is secret. This
+is also the reason nothing above is enforced yet (see the ruleset note above) — going public is
+what would activate it, "when it would be needed most anyway."

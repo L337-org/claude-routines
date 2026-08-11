@@ -76,3 +76,15 @@ forward one that already exists on some live routine.
 Edit the routine's YAML file (or add a new one) and open a PR as usual. `scripts/validate_routines.py`
 runs in CI. Once merged, apply it to the live account by hand (see above) until automatic
 reconciliation has a working mechanism.
+
+## Branch protection
+
+This repo is private on the org's free plan, which means GitHub won't let it hold a repository
+ruleset or classic branch protection at all — `enforcement: "active"` and `"disabled"` both get
+`403 Upgrade to GitHub Pro or make this repository public` (tested, not assumed). The intended
+configuration — matching `docker-mcp`'s own `main` ruleset — is checked in at
+[`.github/rulesets/main.json`](.github/rulesets/main.json); apply it the moment visibility or plan
+changes:
+```
+gh api -X POST repos/L337-org/claude-routines/rulesets --input .github/rulesets/main.json
+```
