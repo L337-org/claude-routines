@@ -72,15 +72,19 @@ Same rules as the rest of L337-org: no direct commits to `main`, PR + ≥1 appro
 review, squash-only, signed commits, resolved threads, Copilot review, required status checks green
 (`Validate routines`). `CODEOWNERS`: `@GavinLucas @claudeleet`.
 
-**Most of this is enforced already**, via a `main` ruleset created and maintained through the
-GitHub **web UI**, checked in for reference at
-[`.github/rulesets/main.json`](.github/rulesets/main.json) and kept in sync with `docker-mcp`'s own
-`main` ruleset shape by hand. The one exception: **"Require review from Code Owners" is gated
-behind a public repo or paid plan even in the UI**, so it's off until this repo goes public — the
-one item on the "revisit when public" list, not a general gap. The REST and GraphQL **write** APIs
-are blocked entirely for this repo regardless of visibility while private (`gh api` and a GraphQL
-`updateRepositoryRuleset` mutation both 403; GraphQL reads work fine), so treat ruleset changes as
-**UI-only while private**.
+**A `main` ruleset is configured but NOT enforced**, matching `docker-mcp`'s own `main` ruleset,
+checked in for reference at [`.github/rulesets/main.json`](.github/rulesets/main.json) and kept in
+sync by hand. Repository rulesets/branch protection for a private repo require GitHub
+Pro/Team/Enterprise (confirmed against GitHub's own plans/pricing pages), which this org isn't on.
+The GitHub **web UI** lets you build and save the ruleset object regardless — that's how this one
+got created — but a saved, active-flagged ruleset on a private Free-plan repo does not actually
+block a non-compliant push or merge. Don't describe it as enforced without a real test proving it
+blocks something, not just the object existing. It starts enforcing the moment this repo goes
+public or the org upgrades plan, no rebuild needed. "Require review from Code Owners" is
+additionally unset even as configuration — the UI itself refuses that one sub-option while private.
+The REST and GraphQL **write** APIs are blocked entirely for this repo regardless of visibility
+while private (`gh api` and a GraphQL `updateRepositoryRuleset` mutation both 403; GraphQL reads
+work fine), so any ruleset change while private has to go through the UI.
 
 ## Visibility
 

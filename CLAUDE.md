@@ -92,21 +92,29 @@ Same rules as the rest of L337-org: no direct commits to `main`, PR + ≥1 appro
 review, squash-only, signed commits, resolved threads, Copilot review, required status checks green
 (`Validate routines`). `CODEOWNERS`: `@GavinLucas @claudeleet`.
 
-**Most of this is enforced already**, via a `main` ruleset created and maintained through the GitHub
-**web UI** (not the API — see below), checked in for reference at
-[`.github/rulesets/main.json`](.github/rulesets/main.json) and kept in sync with `docker-mcp`'s own
-`main` ruleset shape by hand (its `required_status_checks` is this repo's own CI job name, `Validate
-routines`, and it omits `code_scanning`/`code_quality` since this repo ships no application code to
-scan). **The one exception is "Require review from Code Owners"** — gated behind a public repo or a
-paid plan even in the UI, so it's off until this repo goes public; that's the one item on the
-"revisit when public" list, not a general enforcement gap.
+**A `main` ruleset is configured but NOT enforced**, matching `docker-mcp`'s own `main` ruleset,
+checked in for reference at [`.github/rulesets/main.json`](.github/rulesets/main.json) and kept in
+sync by hand (its `required_status_checks` is this repo's own CI job name, `Validate routines`, and
+it omits `code_scanning`/`code_quality` since this repo ships no application code to scan).
+Repository rulesets and branch protection for a private repo require GitHub Pro/Team/Enterprise —
+confirmed against GitHub's own plans/pricing pages, not inferred from the API — which this org isn't
+on. The GitHub **web UI** lets you build and save the ruleset object regardless of that (it's how
+this one got created and edited), but a saved, `enforcement: "ACTIVE"`-flagged ruleset on a private
+Free-plan repo does not actually block a non-compliant push or merge — configurable is not the same
+as enforced, and don't describe it as enforced again without a real test proving it blocks
+something (a direct push, a merge without the required review, etc.), not just the ruleset object
+existing/reading back correctly. It starts actually enforcing the moment this repo goes public (or
+the org upgrades plan) with no rebuild needed.
 
-The REST **and** GraphQL write APIs are blocked entirely for a private repo on the org's free plan
-— confirmed by testing both, not assumed: `gh api` create/update and a GraphQL
-`updateRepositoryRuleset` mutation all return `403 Upgrade to GitHub Pro or make this repository
-public`, regardless of `enforcement: "active"` vs `"disabled"`. GraphQL *reads* work fine (that's
-how the ruleset's live state gets diffed against `.github/rulesets/main.json`), so treat any
-future ruleset change as **UI-only while private** — don't reach for `gh api` expecting it to work.
+**"Require review from Code Owners" is additionally unset even as configuration** — that specific
+sub-option is refused by the UI itself while private, unlike the rest of the ruleset which the UI
+lets you save (just not enforce).
+
+The REST **and** GraphQL write APIs are blocked entirely for this repo regardless of enforcement
+state — `gh api` create/update and a GraphQL `updateRepositoryRuleset` mutation all return `403
+Upgrade to GitHub Pro or make this repository public`. GraphQL *reads* work fine (that's how the
+ruleset's live state gets diffed against `.github/rulesets/main.json`), so any future ruleset
+change while private has to go through the UI, not a script.
 
 ## Visibility
 

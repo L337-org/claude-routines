@@ -79,18 +79,25 @@ reconciliation has a working mechanism.
 
 ## Branch protection
 
-A `main` ruleset is live, created and maintained through the GitHub **web UI** — matching
-`docker-mcp`'s own `main` ruleset: deletion/force-push/signature protection, 1 approval, dismiss
-stale reviews, resolved threads required, squash-only, Copilot review on every push, `Validate
-routines` as the required status check. It's checked in for reference at
-[`.github/rulesets/main.json`](.github/rulesets/main.json), kept in sync by hand when either
-changes.
+A `main` ruleset is **configured but not enforced** — matching `docker-mcp`'s own `main` ruleset:
+deletion/force-push/signature protection, 1 approval, dismiss stale reviews, resolved threads
+required, squash-only, Copilot review on every push, `Validate routines` as the required status
+check. Repository rulesets and branch protection for a *private* repo require GitHub Pro/Team/
+Enterprise ([confirmed against GitHub's own plans/pricing pages](https://docs.github.com/en/get-started/learning-about-github/githubs-plans)),
+which this org is not on — the GitHub **web UI** happily lets you build and save the ruleset object
+regardless (that's how it got created and how `review_on_push` got flipped on), but a saved,
+`enforcement: "ACTIVE"`-flagged ruleset on a private Free-plan repo does not actually block a
+non-compliant push or merge. It's checked in for reference at
+[`.github/rulesets/main.json`](.github/rulesets/main.json), kept in sync by hand, and starts
+actually enforcing the moment this repo goes public (or the org upgrades plan) — no rebuild needed,
+it's already sitting there correctly configured.
 
-**The one thing not set: "Require review from Code Owners."** That specific sub-option is gated
-behind a public repo or a paid plan even in the UI — everything else in the ruleset above is not,
-which corrected an earlier assumption here that the whole feature was blocked while private. (The
-REST **and** GraphQL write APIs genuinely are blocked entirely for this repo — `gh api` and a
-GraphQL `updateRepositoryRuleset` mutation both return `403 Upgrade to GitHub Pro or make this
-repository public`; only GraphQL reads work. So this ruleset can only be edited through the UI while
-private, not scripted.) Turn on "Require review from Code Owners" the moment this repo goes public —
-noted as a to-do, not yet done.
+**"Require review from Code Owners" is additionally unset** even as configuration — that specific
+sub-option is refused by the UI itself while private, unlike the rest of the ruleset which the UI
+lets you save (just not enforce). Turn it on once public, alongside everything else starting to
+take effect.
+
+The REST **and** GraphQL write APIs are blocked entirely for this repo regardless of enforcement
+state — `gh api` create/update and a GraphQL `updateRepositoryRuleset` mutation both return `403
+Upgrade to GitHub Pro or make this repository public`; only GraphQL reads work. So any future
+ruleset edit while private has to go through the UI, not a script.
