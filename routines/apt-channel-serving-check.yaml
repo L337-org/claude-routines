@@ -21,6 +21,8 @@ prompt: |-
 
   1. Establish what SHOULD be served. Read `repos.yaml` in L337-org/apt for the source repos and each one's `keep_last_n`. For each source repo, list its GitHub releases that carry a `.deb` asset (`gh release list` then `gh release view <tag> --json assets`) and take the newest `keep_last_n` of them. That set is the expectation. Note the index is generated with `dpkg-scanpackages --multiversion`, so EVERY retained version should appear, not only the newest — if only the newest is listed, that is a real finding.
 
+  TOOLING: if this environment has no `gh` binary (`gh: command not found`), use the equivalent GitHub MCP tools (`mcp__github__*`) instead to list releases and read each release's assets. Prefer `gh` when it's present. Note in rule 5 if the environment's tooling has changed since the last run.
+
   2. Fetch the live repo metadata over HTTPS from apt.l337.org: the `Release` file, its signature (`Release.gpg` and/or `InRelease`), and the `Packages` index. Use them to determine which package versions the channel is actually offering right now.
 
   3. Compare, and report ONLY a real discrepancy:
