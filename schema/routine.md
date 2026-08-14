@@ -34,6 +34,23 @@ attach step that doesn't exist — the applier would go looking for a GitHub con
 none. A routine's GitHub access follows from its `repositories:` entry alone and needs no
 declaration here.
 
+## Two API behaviours to know when applying a file by hand
+
+Both found by testing on 2026-08-14, and both bite in the unsafe direction.
+
+**Omitting `mcp_connections` on create attaches EVERY connector on the account, not none.** A create
+call that left the field out came back with `Gmail`, `Atlassian_Rovo`, `Claude_Code_Remote` and
+`Slack` all attached — so a read-only diagnostic routine was silently given mail access. The default
+is maximal, not minimal, and nothing warns. **Always pass the file's `mcp_connectors` explicitly when
+applying**, even when it is a single entry, and re-read the response to confirm what actually got
+attached rather than assuming the field you sent is the field that took.
+
+**An empty list is ignored, not applied.** `mcp_connections: []` returns the existing set unchanged;
+only an explicit non-empty list replaces it. So "this routine should reach nothing" is not
+expressible through the API — the closest you can get is replacing the set with the single connector
+it genuinely needs. A routine that must reach nothing has to be created that way in the UI, or left
+with one harmless connector and a `note:` explaining why.
+
 ## Why no raw ids
 
 A routine's own id, its connector's `connector_uuid`, and its `environment_id` are all
