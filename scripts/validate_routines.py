@@ -61,6 +61,25 @@ def slugify(name):
     return s
 
 
+# A routine that opens pull requests is subscribed to their reviews, and an automated
+# reviewer's lower-confidence findings live only in the review BODY - never in a thread.
+# That guidance was recorded in one routine and never propagated, and a run duly reported
+# "no new findings" on a review whose body held a real defect, then waited for feedback it
+# already had. So it is required mechanically here rather than remembered.
+PR_OPENING_RE = re.compile(r"open(?:ing)?\s+(?:a|the|one)\s+PR", re.IGNORECASE)
+REVIEW_BODY_MARKERS = ("READ THE REVIEW BODY, NOT ONLY THE THREADS", "get_reviews")
+
+
+def opens_pull_requests(prompt):
+    """True if the prompt instructs opening a PR, ignoring "never open a PR" prohibitions."""
+    for match in PR_OPENING_RE.finditer(prompt):
+        preceding = prompt[max(0, match.start() - 30):match.start()].lower()
+        if "never" in preceding or "not " in preceding:
+            continue
+        return True
+    return False
+
+
 def check_file(path, text, data, errors):
     if not isinstance(data, dict):
         errors.append(f"{path}: top-level content is not a mapping")
@@ -117,6 +136,14 @@ def check_file(path, text, data, errors):
     prompt = data.get("prompt")
     if not isinstance(prompt, str) or not prompt.strip():
         errors.append(f"{path}: 'prompt' must be a non-empty string")
+    elif opens_pull_requests(prompt):
+        absent = [m for m in REVIEW_BODY_MARKERS if m not in prompt]
+        if absent:
+            errors.append(
+                f"{path}: opens pull requests but its prompt omits the review-body guidance "
+                f"(missing {', '.join(absent)}) - a suppressed review finding would be missed. "
+                f"Copy the block verbatim from routines/mcp-vs-skills-figure-drift.yaml."
+            )
 
     expected_slug = slugify(data.get("name", ""))
     actual_slug = path.split("/")[-1].removesuffix(".yaml")
