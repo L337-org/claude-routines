@@ -66,18 +66,32 @@ def slugify(name):
 # That guidance was recorded in one routine and never propagated, and a run duly reported
 # "no new findings" on a review whose body held a real defect, then waited for feedback it
 # already had. So it is required mechanically here rather than remembered.
-PR_OPENING_RE = re.compile(r"open(?:ing)?\s+(?:a|the|one)\s+PR", re.IGNORECASE)
+# Both spellings, since a prompt may say either.
+_OPEN_PR = r"open(?:ing|s)?\s+(?:a|the|one|its)\s+(?:PR|pull request)"
+PR_OPENING_RE = re.compile(_OPEN_PR, re.IGNORECASE)
+# A prohibition is only a prohibition when the negation sits immediately before the
+# phrase - at most two words in between, to allow "never ever open a PR". Scanning a
+# fixed window for the substring "never" instead would let an unrelated one nearby
+# ("NEVER push to `main`. Open the PR into `main`") suppress a real match, and a false
+# negative here silently exempts a routine from the requirement below, which is the one
+# failure this check exists to prevent.
+_NEGATORS = r"never|not|no|cannot|can[\u2019']t|don[\u2019']t|does\s+not|must\s+not|avoid|without"
+NEGATED_OPEN_PR_RE = re.compile(
+    rf"\b(?:{_NEGATORS})\b(?:\s+\w+){{0,2}}\s+{_OPEN_PR}", re.IGNORECASE
+)
 REVIEW_BODY_MARKERS = ("READ THE REVIEW BODY, NOT ONLY THE THREADS", "get_reviews")
 
 
 def opens_pull_requests(prompt):
-    """True if the prompt instructs opening a PR, ignoring "never open a PR" prohibitions."""
-    for match in PR_OPENING_RE.finditer(prompt):
-        preceding = prompt[max(0, match.start() - 30):match.start()].lower()
-        if "never" in preceding or "not " in preceding:
-            continue
-        return True
-    return False
+    """Whether the prompt instructs opening a pull request.
+
+    Prohibitions ("never open a PR", "don't open a Pull Request") do not count: the
+    read-only routines all describe themselves that way, and requiring the review-body
+    guidance of them would be noise. Matches are compared by end offset, which is shared
+    between the phrase and its negated form.
+    """
+    negated = {match.end() for match in NEGATED_OPEN_PR_RE.finditer(prompt)}
+    return any(match.end() not in negated for match in PR_OPENING_RE.finditer(prompt))
 
 
 def check_file(path, text, data, errors):
