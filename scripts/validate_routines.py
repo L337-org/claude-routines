@@ -12,7 +12,7 @@ Checks, per file:
   - network_allowlist entries (if any) are bare hostnames, not URLs
   - the filename slug matches the slugified `name`
   - no account-specific identifier (routine id, connector uuid, environment
-    id, or any bare UUID) appears anywhere in the file — these are
+    id, or any bare UUID) appears anywhere in the file - these are
     regenerated on every restore and are excluded by policy; reference the
     owning routine/connector/environment by name instead. A cross-routine
     reference inside `prompt` must use the `{{routine: <name>}}` placeholder
@@ -91,7 +91,7 @@ def check_file(path, text, data, errors):
 
     banned = set(data.keys()) & BANNED_KEYS
     if banned:
-        errors.append(f"{path}: field(s) {sorted(banned)} store an account-specific id — remove, reference by name")
+        errors.append(f"{path}: field(s) {sorted(banned)} store an account-specific id - remove, reference by name")
 
     for field in REQUIRED_STRING_FIELDS:
         if not isinstance(data.get(field), str) or not data[field].strip():
@@ -153,9 +153,9 @@ def check_file(path, text, data, errors):
     # Raw-id scan runs over the whole file text, not just parsed values, so a
     # leaked id inside a comment or an unexpected field still gets caught.
     for m in UUID_RE.finditer(text):
-        errors.append(f"{path}: contains a raw UUID ({m.group(0)}) — account-specific, reference by name instead")
+        errors.append(f"{path}: contains a raw UUID ({m.group(0)}) - account-specific, reference by name instead")
     for m in RAW_ID_RE.finditer(text):
-        errors.append(f"{path}: contains a raw {m.group(1)}_ id ({m.group(0)}) — reference by name instead")
+        errors.append(f"{path}: contains a raw {m.group(1)}_ id ({m.group(0)}) - reference by name instead")
 
 
 def main():
