@@ -12,11 +12,18 @@ Checks, per file:
   - network_allowlist entries (if any) are bare hostnames, not URLs
   - the filename slug matches the slugified `name`
   - no account-specific identifier (routine id, connector uuid, environment
-    id, or any bare UUID) appears anywhere in the file — these are
+    id, or any bare UUID) appears anywhere in the file - these are
     regenerated on every restore and are excluded by policy; reference the
     owning routine/connector/environment by name instead. A cross-routine
     reference inside `prompt` must use the `{{routine: <name>}}` placeholder
     form, never a raw id.
+  - a prompt that instructs opening a pull request also carries the
+    review-body guidance. Such a routine is subscribed to its PRs' reviews,
+    and an automated reviewer's lower-confidence findings appear only in the
+    review body, never as a thread, so a routine without that guidance can
+    report "no new findings" on a review that holds a real one. Prompts that
+    never open a PR are exempt - see `opens_pull_requests`, whose own cases
+    live in `scripts/test_validate_routines.py`.
 
 Exits non-zero (and prints every failure, not just the first) if any file
 fails any check.
@@ -61,6 +68,39 @@ def slugify(name):
     return s
 
 
+# A routine that opens pull requests is subscribed to their reviews, and an automated
+# reviewer's lower-confidence findings live only in the review BODY - never in a thread.
+# That guidance was recorded in one routine and never propagated, and a run duly reported
+# "no new findings" on a review whose body held a real defect, then waited for feedback it
+# already had. So it is required mechanically here rather than remembered.
+# Both spellings, since a prompt may say either.
+_OPEN_PR = r"open(?:ing|s)?\s+(?:a|the|one|its)\s+(?:PR|pull request)"
+PR_OPENING_RE = re.compile(_OPEN_PR, re.IGNORECASE)
+# A prohibition is only a prohibition when the negation sits immediately before the
+# phrase - at most two words in between, to allow "never ever open a PR". Scanning a
+# fixed window for the substring "never" instead would let an unrelated one nearby
+# ("NEVER push to `main`. Open the PR into `main`") suppress a real match, and a false
+# negative here silently exempts a routine from the requirement below, which is the one
+# failure this check exists to prevent.
+_NEGATORS = r"never|not|no|cannot|can[\u2019']t|don[\u2019']t|does\s+not|must\s+not|avoid|without"
+NEGATED_OPEN_PR_RE = re.compile(
+    rf"\b(?:{_NEGATORS})\b(?:\s+\w+){{0,2}}\s+{_OPEN_PR}", re.IGNORECASE
+)
+REVIEW_BODY_MARKERS = ("READ THE REVIEW BODY, NOT ONLY THE THREADS", "get_reviews")
+
+
+def opens_pull_requests(prompt):
+    """Whether the prompt instructs opening a pull request.
+
+    Prohibitions ("never open a PR", "don't open a Pull Request") do not count: the
+    read-only routines all describe themselves that way, and requiring the review-body
+    guidance of them would be noise. Matches are compared by end offset, which is shared
+    between the phrase and its negated form.
+    """
+    negated = {match.end() for match in NEGATED_OPEN_PR_RE.finditer(prompt)}
+    return any(match.end() not in negated for match in PR_OPENING_RE.finditer(prompt))
+
+
 def check_file(path, text, data, errors):
     if not isinstance(data, dict):
         errors.append(f"{path}: top-level content is not a mapping")
@@ -72,7 +112,7 @@ def check_file(path, text, data, errors):
 
     banned = set(data.keys()) & BANNED_KEYS
     if banned:
-        errors.append(f"{path}: field(s) {sorted(banned)} store an account-specific id — remove, reference by name")
+        errors.append(f"{path}: field(s) {sorted(banned)} store an account-specific id - remove, reference by name")
 
     for field in REQUIRED_STRING_FIELDS:
         if not isinstance(data.get(field), str) or not data[field].strip():
@@ -117,6 +157,14 @@ def check_file(path, text, data, errors):
     prompt = data.get("prompt")
     if not isinstance(prompt, str) or not prompt.strip():
         errors.append(f"{path}: 'prompt' must be a non-empty string")
+    elif opens_pull_requests(prompt):
+        absent = [m for m in REVIEW_BODY_MARKERS if m not in prompt]
+        if absent:
+            errors.append(
+                f"{path}: opens pull requests but its prompt omits the review-body guidance "
+                f"(missing {', '.join(absent)}) - a suppressed review finding would be missed. "
+                f"Copy the block verbatim from routines/mcp-vs-skills-figure-drift.yaml."
+            )
 
     expected_slug = slugify(data.get("name", ""))
     actual_slug = path.split("/")[-1].removesuffix(".yaml")
@@ -126,9 +174,9 @@ def check_file(path, text, data, errors):
     # Raw-id scan runs over the whole file text, not just parsed values, so a
     # leaked id inside a comment or an unexpected field still gets caught.
     for m in UUID_RE.finditer(text):
-        errors.append(f"{path}: contains a raw UUID ({m.group(0)}) — account-specific, reference by name instead")
+        errors.append(f"{path}: contains a raw UUID ({m.group(0)}) - account-specific, reference by name instead")
     for m in RAW_ID_RE.finditer(text):
-        errors.append(f"{path}: contains a raw {m.group(1)}_ id ({m.group(0)}) — reference by name instead")
+        errors.append(f"{path}: contains a raw {m.group(1)}_ id ({m.group(0)}) - reference by name instead")
 
 
 def main():

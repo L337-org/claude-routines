@@ -22,4 +22,5 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
+      - run: python scripts/test_validate_routines.py
       - run: python scripts/validate_routines.py
