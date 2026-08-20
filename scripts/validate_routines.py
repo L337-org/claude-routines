@@ -17,6 +17,13 @@ Checks, per file:
     owning routine/connector/environment by name instead. A cross-routine
     reference inside `prompt` must use the `{{routine: <name>}}` placeholder
     form, never a raw id.
+  - a prompt that instructs opening a pull request also carries the
+    review-body guidance. Such a routine is subscribed to its PRs' reviews,
+    and an automated reviewer's lower-confidence findings appear only in the
+    review body, never as a thread, so a routine without that guidance can
+    report "no new findings" on a review that holds a real one. Prompts that
+    never open a PR are exempt - see `opens_pull_requests`, whose own cases
+    live in `scripts/test_validate_routines.py`.
 
 Exits non-zero (and prints every failure, not just the first) if any file
 fails any check.
