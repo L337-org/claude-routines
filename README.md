@@ -8,17 +8,17 @@ change, and recreated on demand rather than existing only as opaque state in a w
 here, never the other way round.
 
 **Applying a change is manual, and stays that way by design.** A cloud routine cannot call
-`RemoteTrigger` — confirmed by testing, not assumed — and there is no API for creating, updating, or
+`RemoteTrigger` - confirmed by testing, not assumed - and there is no API for creating, updating, or
 listing routines at all; routine management is only ever possible from a session with a claude.ai
 subscription login (the web UI, the Desktop app, or the CLI). So there is no automatic apply step to
 build here. Apply a merged change from an interactive Claude Code session with `RemoteTrigger` (or
-the `schedule` skill) — see "Recreating or updating a routine" below.
+the `schedule` skill) - see "Recreating or updating a routine" below.
 
 ## Layout
 
 One YAML file per routine under [`routines/`](routines/), named from a slugified version of its
 `name`. See [`schema/routine.md`](schema/routine.md) for the field reference, and
-[`scripts/validate_routines.py`](scripts/validate_routines.py) — run in CI on every push and PR —
+[`scripts/validate_routines.py`](scripts/validate_routines.py) - run in CI on every push and PR -
 for the checks that keep files honest.
 
 ## What's excluded, and why
@@ -33,13 +33,13 @@ for the checks that keep files honest.
   stored raw. Each is referenced **by name** instead (`environment: Default`,
   `mcp_connectors: [Slack]`), resolved to the current live id by hand when a change is applied. A
   prompt that needs to name a *sibling* routine (e.g. one routine triggering
-  another) uses a `{{routine: <exact name>}}` placeholder rather than a hardcoded id — see
+  another) uses a `{{routine: <exact name>}}` placeholder rather than a hardcoded id - see
   `docker-py-sdk-audit-phase-1-detect.yaml` for a real example, and `schema/routine.md` for the
   convention. `scripts/validate_routines.py` fails the build if a raw id, uuid, or unresolved
   placeholder slips into a file.
 
 Slack channel names/ids embedded in a routine's own prompt (e.g. `#docker-mcp`, `C0BAP2FTQ6N`) are
-kept as-is — unlike the ids above, a channel doesn't get reissued on restore, and it's part of the
+kept as-is - unlike the ids above, a channel doesn't get reissued on restore, and it's part of the
 routine's actual functional behaviour (which channel it posts to), not an artefact of this account.
 
 ## Routines
@@ -61,11 +61,11 @@ routine's actual functional behaviour (which channel it posts to), not an artefa
 ## Recreating or updating a routine
 
 Read its file, then apply it by hand from an interactive session with `RemoteTrigger` (or the
-`schedule` skill) — `RemoteTrigger action: "create"` / `"update"`, matching by exact `name`,
-resolving `environment`/`mcp_connectors` names and any `{{routine: …}}` placeholders to live ids
+`schedule` skill) - `RemoteTrigger action: "create"` / `"update"`, matching by exact `name`,
+resolving `environment`/`mcp_connectors` names and any `{{routine: ...}}` placeholders to live ids
 yourself (see `schema/routine.md`). For a brand-new routine that needs an MCP connector not
 currently attached to anything live, attach the connector once via
-<https://claude.ai/customize/connectors> first — there's no way to invent a connector id, only carry
+<https://claude.ai/customize/connectors> first - there's no way to invent a connector id, only carry
 forward one that already exists on some live routine.
 
 ## Making a change
