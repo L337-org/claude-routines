@@ -26,7 +26,7 @@ prompt: |-
 
   **Read the exclusions and treat them as binding.** `CLAUDE.md`, Docker SDK Policy, the subsection "SDK audit exclusions (deliberate non-candidates)". Every entry was decided on the merits and is OUT OF SCOPE - never propose it, not even to note it. That list is the only thing stopping you re-filing the same rejected candidates forever. Read it carefully enough to catch the inversion: a hand-built endpoint call or a private-attribute reach-in that the list explains is a deliberate workaround for an upstream bug, NOT a low-level call to migrate onto a public method. "Migrating" one would undo the fix.
 
-  **Tooling.** This prompt writes GitHub steps as `gh` invocations for concreteness. If this environment has no `gh` binary (`gh: command not found`), use the equivalent GitHub MCP tools (`mcp__github__*`) for every one of them. KNOWN BASELINE, DO NOT REPORT IT: this environment has NO `gh` binary and the MCP tools are what every run uses. You have no memory of previous runs, so you cannot tell whether that has "changed since the last run" - which is why runs kept reporting it defensively, every time, as a finding. Report the tooling ONLY if `gh` is now PRESENT (the baseline has genuinely moved) or the MCP tools fail. Silence about tooling means the baseline held.
+  **Tooling.** Steps below name `gh` for readability; this environment has no `gh`, so use the equivalent `mcp__github__*` tools. Say so only if `gh` appears or an MCP tool fails.
 
   ## 1. Find candidates
 
