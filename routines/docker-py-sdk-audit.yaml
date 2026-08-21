@@ -26,7 +26,7 @@ prompt: |-
 
   **Read the exclusions and treat them as binding.** `CLAUDE.md`, Docker SDK Policy, the subsection "SDK audit exclusions (deliberate non-candidates)". Every entry was decided on the merits and is OUT OF SCOPE - never propose it, not even to note it. That list is the only thing stopping you re-filing the same rejected candidates forever. Read it carefully enough to catch the inversion: a hand-built endpoint call or a private-attribute reach-in that the list explains is a deliberate workaround for an upstream bug, NOT a low-level call to migrate onto a public method. "Migrating" one would undo the fix.
 
-  **Tooling.** This prompt writes GitHub steps as `gh` invocations for concreteness. If this environment has no `gh` binary (`gh: command not found`), use the equivalent GitHub MCP tools (`mcp__github__*`) for every one of them. Note in your Slack report if the environment's tooling has changed since these instructions were written.
+  **Tooling.** Steps below name `gh` for readability; this environment has no `gh`, so use the equivalent `mcp__github__*` tools. Say so only if `gh` appears or an MCP tool fails.
 
   ## 1. Find candidates
 
@@ -78,7 +78,7 @@ prompt: |-
 
   While it is open: poll `gh pr checks <n>` and read review feedback. If CI fails, pull the logs, fix, re-validate locally and push - up to 3 fix cycles. If an automated reviewer (e.g. GitHub Copilot) comments, address it.
 
-  **REVIEW FEEDBACK: READ THE REVIEW BODY, NOT ONLY THE THREADS.** An automated reviewer puts its lower-confidence findings in a collapsed "Suppressed comments" block inside the review BODY. Those have no thread, no line anchor and nothing to resolve, so a threads query (`method: get_review_comments`, or `gh api .../pulls/<n>/comments`) never returns them: AN EMPTY OR FULLY-RESOLVED THREAD LIST IS NOT EVIDENCE THAT THERE IS NO FEEDBACK. On every review wake, and again before you call the run finished, read the review bodies themselves (`method: get_reviews`, or `gh api repos/<owner>/<repo>/pulls/<n>/reviews`), including everything inside a `<details>` block. The wake event's own `comment` field is truncated, so never judge a review from the event text alone, and do not treat a review wake as a CI-status event. Answer a suppressed finding as you would any other - verify the claim, then fix it or say plainly why it needs no change - in an ordinary PR comment, since there is no thread to reply to. A review submitted before your latest push has not seen your current code: check its `submitted_at` against the head commit before treating it as coverage. This is not hypothetical: a run once queried threads only, reported "no new findings" on a review whose body held a real defect, and then sat waiting for feedback it already had.
+  **READ THE REVIEW BODY, NOT ONLY THE THREADS.** A bot reviewer's lower-confidence findings sit in a collapsed "Suppressed comments" `<details>` block in the review body, with no thread: `get_review_comments` never returns them, so an empty or fully-resolved thread list proves nothing. Fetch `get_reviews` on every review wake and again before you finish. The wake event's own `comment` is truncated - judge from the fetched body, and treat a review wake as a review, not a CI-status check. Answer a suppressed finding as you would any other - verify it, then fix it or say why not - in an ordinary PR comment. Check `submitted_at`: a review older than your last push has not seen your current code.
 
   ## 7. SPEAK UP WHEN YOU CANNOT WORK, OR WHEN SOMETHING IS UNEXPECTED
 
