@@ -62,7 +62,7 @@ routine's actual functional behaviour (which channel it posts to), not an artefa
 
 Read its file, then apply it by hand from an interactive session with `RemoteTrigger` (or the
 `schedule` skill) - `RemoteTrigger action: "create"` / `"update"`, matching by exact `name`,
-resolving `environment`/`mcp_connectors` names and any `{{routine: ...}}` placeholders to live ids
+resolving `environment`/`mcp_connectors` names and any `{{routine: <exact name>}}` placeholders to live ids
 yourself (see `schema/routine.md`). For a brand-new routine that needs an MCP connector not
 currently attached to anything live, attach the connector once via
 <https://claude.ai/customize/connectors> first - there's no way to invent a connector id, only carry
