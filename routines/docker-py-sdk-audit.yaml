@@ -69,7 +69,7 @@ prompt: |-
 
   ## 5. Open a PR
 
-  - Branch `sdk-audit/<YYYY-MM-DD>`. Do NOT use a `feature/**` or `release/**` name: each is covered by a ruleset carrying `pull_request` and `required_status_checks`, and no bypass applies to a non-admin actor like you, so a direct push to one is refused. Never push to `main`.
+  - Branch `sdk-audit/<YYYY-MM-DD>`, which matches no ruleset, so you can push and force-push it freely. Never push to `main` or `release/**` (both require a pull request), nor to `feature/**` (no PR rule by design, so a review fix can go straight to a feature branch, but its required status checks refuse your first push anyway). No bypass applies to you.
   - The PR body says what was scanned (naming the docker-py version audited and the locked one), one entry per implemented candidate - file:line, the call before, the replacement, why it is safe - and a separate section for anything escalated rather than implemented. **This repo is PUBLIC**: never put a claude.ai routine or trigger URL, an internal issue key, or any other internal link into a PR body, a commit message or a branch name. Internal links go to Slack only.
   - Open it and leave it. Never merge, never enable auto-merge.
   - If a push is refused, make ONE attempt, then report it plainly and stop. Never diagnose the ruleset and never propose changing branch protection or bypass actors.
