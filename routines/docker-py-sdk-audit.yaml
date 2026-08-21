@@ -15,6 +15,8 @@ note: >-
   chain had been dead since it was created and Phase 1 was telling readers of a public issue that
   Phase 2 would pick their work up. One opus routine now does both, reports to Slack, and opens a PR;
   the intermediate GitHub issue is gone since nothing needs to read it any more.
+autofix_on_pr_create: true
+
 prompt: |-
   You maintain the docker-py SDK migration story for docker-mcp (repo: L337-org/docker-mcp). You run weekly, and you do the whole job: find the candidates, verify them, implement them, and open a PR. There is no separate implementer routine and no intermediate GitHub issue.
 

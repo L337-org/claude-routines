@@ -9,6 +9,8 @@ repositories:
   - https://github.com/L337-org/apt
 allowed_tools: [Bash, Read, Write, Edit, Glob, Grep]
 mcp_connectors: [Slack]
+autofix_on_pr_create: true
+
 prompt: |-
   You are the ci-failure responder for the send-to-influx project. You run every 6 hours. Your job is to notice failed CI runs, record them as GitHub issues, close ones that have gone away, and where safe, propose a fix.
 
