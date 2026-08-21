@@ -34,9 +34,8 @@ for the checks that keep files honest.
   `mcp_connectors: [Slack]`), resolved to the current live id by hand when a change is applied. A
   prompt that needs to name a *sibling* routine (e.g. one routine triggering
   another) uses a `{{routine: <exact name>}}` placeholder rather than a hardcoded id - see
-  `docker-py-sdk-audit-phase-1-detect.yaml` for a real example, and `schema/routine.md` for the
-  convention. `scripts/validate_routines.py` fails the build if a raw id, uuid, or unresolved
-  placeholder slips into a file.
+  `schema/routine.md` for the convention. `scripts/validate_routines.py` fails the build if a raw
+  id, uuid, or unresolved placeholder slips into a file.
 
 Slack channel names/ids embedded in a routine's own prompt (e.g. `#docker-mcp`, `C0BAP2FTQ6N`) are
 kept as-is - unlike the ids above, a channel doesn't get reissued on restore, and it's part of the

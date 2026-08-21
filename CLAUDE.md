@@ -38,8 +38,7 @@ one-off seeding step when a routine is first added.
    **name** instead (`environment: Default`, `mcp_connectors: [Slack]`), resolved to the current
    live id by hand at apply time (see `schema/routine.md`).
 4. **A cross-routine reference inside a `prompt` uses `{{routine: <exact name>}}`**, never a
-   hardcoded `trigger_id` — see `docker-py-sdk-audit-phase-1-detect.yaml` for the real example this
-   rule exists because of (its prompt used to hardcode a sibling routine's id).
+   hardcoded `trigger_id`.
 5. **Slack channel names/ids are the one exception** — kept as-is in prompt text. A channel isn't
    reissued on restore, and which channel a routine posts to is part of its actual behaviour, not an
    artefact of this account.
