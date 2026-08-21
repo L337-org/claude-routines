@@ -17,6 +17,8 @@ note: >-
   that opens a PR. The allowlist entries are both needed by the script: PyPI to install its pinned
   tiktoken, and openaipublic.blob.core.windows.net for the cl100k_base table, which tiktoken fetches
   on first use in a fresh environment.
+autofix_on_pr_create: true
+
 prompt: |-
   You keep `MCP_VS_SKILLS.md` in `L337-org/docker-mcp` true. It compares the MCP server against the `l337-docker` agent skill and carries roughly forty measured figures. Your job is to notice when reality has moved away from what it claims, and to judge whether the difference is worth republishing.
 

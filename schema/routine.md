@@ -15,8 +15,43 @@ the exact rules.
 | `allowed_tools` | yes | list of strings | Tool names the routine's session may use. |
 | `mcp_connectors` | no | list of strings | MCP connector **names** (e.g. `Slack`) attached via <https://claude.ai/customize/connectors>, never `connector_uuid`. **Never list `GitHub` here** - see "GitHub access is not a connector" below. |
 | `network_allowlist` | no | list of hostnames | Domains this routine's cloud environment needs on its outbound allowlist to do its job (bare hostnames, no scheme/path). Best-effort - populated from domains a routine's own prompt explicitly names as required, not an exhaustive audit of every fetch target. Extend it when a routine reports a blocked domain it needs. **Not part of the live routine config** (like `note`): the allowlist belongs to the shared *environment*, so this field records what that environment must permit for the routine to work, and `RemoteTrigger` never returns it. Absence from live config is expected, not drift. Declare a host only where the prompt actually instructs a fetch of it - a host merely mentioned in passing does not belong here. |
+| `autofix_on_pr_create` | only if the routine opens PRs | boolean | Must be `true` on any routine whose prompt instructs opening a pull request, and absent on every other routine. Validation enforces both. See "Why autofix_on_pr_create must be true, explicitly" below. |
 | `note` | no | string | Context for a human reading this file. Not part of the live routine config. |
 | `prompt` | yes | string (block literal) | The routine's full instructions, verbatim, except for cross-routine references (see below). |
+
+## Why `autofix_on_pr_create` must be true, explicitly
+
+This field lives in the live routine's `job_config.ccr.session_context`. It gates whether the
+routine is subscribed to its own pull requests' events, so it decides whether the routine is ever
+woken for a CI failure or a review on a PR it opened.
+
+**It is undocumented.** As of 21 Aug 2026 it appears nowhere in
+<https://code.claude.com/docs/en/routines>, so there is no stated default and no commitment that
+today's behaviour continues. Re-check the docs before relying on anything here.
+
+**`false` suppresses PR-event delivery.** Verified by comparing two runs of routines in this repo,
+same prompts, days apart:
+
+* `L337-org/docker-mcp#193`, field **absent**: the run log shows a `subscription.created` wake three
+  seconds after `create_pull_request`, then further wakes on `pull_request_review.submitted` and
+  `issue_comment.created`. The routine acted on them and fixed a review finding.
+* `L337-org/docker-mcp#194`, field **`false`**: no wake at all. The session went idle on its own
+  `sleep` timer and was never told that CI had finished or that a review existed.
+
+**Absent is not a state this repo can hold.** The claude.ai web UI writes `false` into the field
+whenever a routine is edited there - that is how it was turned off on all four PR-opening routines
+at once, unnoticed, while their prompts were being edited for an unrelated reason. Declaring `true`
+gives a value that can be asserted here and seen to drift; absent gives an undocumented default.
+
+**Read the live config before overwriting a routine.** The UI also adds `outcomes` (generated
+`claude/*` branch names) which this repo does not model, so applying from these files without
+checking what is live first silently strips fields. Applying is manual, so this check is the only
+guard there is.
+
+**This does not replace the prompt's own instructions.** The platform's injected posture text
+("drive-to-green") says nothing about reading a review *body*, and a run following it missed a
+suppressed reviewer finding on #193. Every PR-opening prompt therefore carries its own
+read-the-review-body block, which validation also enforces.
 
 ## GitHub access is not a connector
 

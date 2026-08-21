@@ -5,11 +5,12 @@ Plain asserts, no test framework: this repo has one CI job and no test dependenc
 adding one for a single module would cost more than it returns. Run with
 `python scripts/test_validate_routines.py`; CI runs it alongside the validator itself.
 
-Only `opens_pull_requests` is covered, because it is the only part that decides anything
-by judgement rather than by shape. It gates the review-body requirement, so a false
-negative silently exempts a routine from that check - and a first attempt at it did
-exactly that, scanning a fixed window for the substring "never" and so letting an
-unrelated "NEVER push to `main`" nearby suppress a real match.
+Two things are covered. `opens_pull_requests` decides by judgement rather than by shape,
+and it gates both of the PR-opening requirements, so a false negative silently exempts a
+routine from them - a first attempt at it did exactly that, scanning a fixed window for the
+substring "never" and so letting an unrelated "NEVER push to `main`" nearby suppress a real
+match. The `autofix_on_pr_create` rule is covered because a routine that loses that field
+stops being woken for its own PRs, silently, and the field is invisible in the web UI.
 """
 
 import sys
@@ -17,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from validate_routines import opens_pull_requests  # noqa: E402
+from validate_routines import check_file, opens_pull_requests  # noqa: E402
 
 # (prompt fragment, opens a PR?, what the case is for)
 CASES = [
@@ -47,15 +48,49 @@ def main():
         if actual != expected:
             failures.append(f"  expected {expected}, got {actual}: {description}\n    {prompt!r}")
 
+    for prompt, autofix, expected, description in AUTOFIX_CASES:
+        actual = len(_autofix_errors(prompt, autofix))
+        if actual != expected:
+            failures.append(
+                f"  expected {expected} autofix error(s), got {actual}: {description}\n"
+                f"    autofix={autofix!r} prompt={prompt!r}"
+            )
+
+    total = len(CASES) + len(AUTOFIX_CASES)
     if failures:
-        print(f"{len(failures)} of {len(CASES)} opens_pull_requests case(s) failed:", file=sys.stderr)
+        print(f"{len(failures)} of {total} case(s) failed:", file=sys.stderr)
         for failure in failures:
             print(failure, file=sys.stderr)
         return 1
 
-    print(f"OK: {len(CASES)} opens_pull_requests case(s) passed")
+    print(f"OK: {len(CASES)} opens_pull_requests and {len(AUTOFIX_CASES)} autofix case(s) passed")
     return 0
 
+
+
+# A prompt fragment that trips `opens_pull_requests`, and one that does not.
+OPENS = "If it is something you can safely fix, open a PR into `main`."
+READ_ONLY = "You are READ-ONLY: never open a PR or an issue. Report to Slack only."
+
+
+def _autofix_errors(prompt, autofix):
+    """The autofix-specific errors check_file() raises for a minimal routine."""
+    data = {"prompt": prompt}
+    if autofix is not None:
+        data["autofix_on_pr_create"] = autofix
+    errors = []
+    check_file("routines/example.yaml", "", data, errors)
+    return [e for e in errors if "autofix_on_pr_create" in e]
+
+
+AUTOFIX_CASES = [
+    (OPENS, True, 0, "a PR-opening routine declaring true is correct"),
+    (OPENS, False, 1, "false suppresses the PR-event subscription, so it must be rejected"),
+    (OPENS, None, 1, "absent cannot be relied on: the web UI writes false on every edit"),
+    (READ_ONLY, None, 0, "a read-only routine correctly carries no such field"),
+    (READ_ONLY, True, 1, "the field does nothing on a routine that opens no PR"),
+    (READ_ONLY, False, 1, "likewise false: the file should describe what is configured"),
+]
 
 if __name__ == "__main__":
     sys.exit(main())

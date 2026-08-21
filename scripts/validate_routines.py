@@ -45,6 +45,7 @@ ALLOWED_TOP_LEVEL_KEYS = {
     "allowed_tools",
     "mcp_connectors",
     "network_allowlist",
+    "autofix_on_pr_create",
     "note",
     "prompt",
 }
@@ -165,6 +166,21 @@ def check_file(path, text, data, errors):
                 f"(missing {', '.join(absent)}) - a suppressed review finding would be missed. "
                 f"Copy the block verbatim from routines/mcp-vs-skills-figure-drift.yaml."
             )
+        if data.get("autofix_on_pr_create") is not True:
+            errors.append(
+                f"{path}: opens pull requests, so it must declare "
+                f"'autofix_on_pr_create: true' (found "
+                f"{data.get('autofix_on_pr_create', '(absent)')!r}). `false` suppresses the "
+                f"PR-event subscription, so the routine is never woken for CI failures or "
+                f"reviews, and absent cannot be relied on - the web UI writes `false` into it "
+                f"on every edit and its default is undocumented."
+            )
+    elif "autofix_on_pr_create" in data:
+        errors.append(
+            f"{path}: declares 'autofix_on_pr_create' but never opens a pull request, so the "
+            f"field does nothing. Remove it - the read-only routines carry no such field live, "
+            f"and this file should describe what is actually configured."
+        )
 
     expected_slug = slugify(data.get("name", ""))
     actual_slug = path.split("/")[-1].removesuffix(".yaml")
