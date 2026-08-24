@@ -53,14 +53,15 @@ prompt: |-
   **Establish "more than once" from run history, not from memory.** You have none, and a previous
   run's Slack line is not queryable, so a first occurrence deliberately leaves no record you can
   look up - which would make this rule impossible to apply consistently if you tried. Count it
-  directly instead, for the specific workflow and branch:
-  `gh run list --repo <repo> --workflow "<workflow name>" --branch <branch> --limit 30 --json conclusion,createdAt,url`.
-  Two or more non-success conclusions in that window is "more than once"; one is not.
-  **Do not filter with `--status failure` here.** These fail as `cancelled` at least as often as
-  `failure` - a job hitting `timeout-minutes` reports `cancelled`, which is the same blind spot the
-  aggregate-workflow hang exposed - so count `failure`, `cancelled` and `timed_out` together and
-  ignore a `cancelled` that is an ordinary `cancel-in-progress` supersede (a newer run on the same
-  branch started within a minute or two).
+  directly instead, listing that one workflow's recent runs on that one branch and counting how many
+  came back `failure`, `cancelled` or `timed_out` - the same three conclusions rule 1 pools, and for
+  the same reason, so do not narrow this count to `failure` alone. Discount a `cancelled` that is an
+  ordinary `cancel-in-progress` supersede (a newer run on the same branch started a minute or two
+  later). Two or more real occurrences in the window is "more than once"; one is not.
+  Expressed as a `gh` invocation for concreteness, the listing is
+  `gh run list --repo <repo> --workflow "<workflow name>" --branch <branch> --limit 30 --json conclusion,createdAt,url` -
+  but this paragraph sits above rule 0, so read that rule first: there is no `gh` binary in this
+  environment and the equivalent `mcp__github__*` call is what you actually run, here as everywhere else.
   If the window holds only one occurrence but you cannot see far enough back to be sure, say which
   window you checked in the Slack line rather than filing on a guess.
 
