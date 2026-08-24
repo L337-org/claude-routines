@@ -34,6 +34,22 @@ prompt: |-
       them in one message says so without either spamming Slack or losing which PRs are affected.
   Do not open a `ci-failure` issue for this either way - it isn't a defect in our code or CI.
 
+  A fourth kind is GitHub-managed and belongs to neither repo's own workflows: default-setup CodeQL
+  (`Push on main`, path `dynamic/github-code-scanning/codeql`) and `pages build and deployment` on a
+  `gh-pages` branch. Neither is a required status check and neither is a defect in our code, so they
+  do not get a `ci-failure` issue on a single occurrence — but do not simply skip them either, which
+  is what happened before this paragraph existed. Two of them matter for a reason that is not obvious
+  from the run list:
+    - CodeQL failing or being cancelled on `main` means the security scan silently did not run. There
+      is no other signal that it didn't.
+    - `pages build and deployment` failing on `L337-org/apt` means https://apt.l337.org/ stops being
+      republished, which has exactly the user-visible effect a failed aggregate run has — the same
+      consequence the aggregate workflow is watched for.
+  Report any failure of these in the Slack summary, naming the workflow, the repo, the branch and the
+  run URL. File a `ci-failure` issue ONLY if it has happened more than once, or if you can show the
+  user-visible effect above is live (apt.l337.org serving a stale index, `main` with no completed
+  CodeQL run). A single self-resolved occurrence is a Slack line, not an issue.
+
   0. TOOLING: steps below name `gh` for readability; this environment has no `gh`, so use the equivalent `mcp__github__*` tools throughout. Say so only if `gh` appears or an MCP tool fails.
 
   1. For each repo, list recent runs whose conclusion was `failure`, `cancelled` or `timed_out` - those three, which are the ones that mean our CI broke. Other non-success conclusions (`skipped`, `action_required`, `neutral`, `stale`) are deliberately out of scope; if you meet one that looks like a real failure, treat it under rule 9 rather than quietly widening the sweep. A `--status failure` sweep is NOT enough on its own: a job killed by its own `timeout-minutes` comes back with `conclusion: cancelled`, never `failure` and never `timed_out`, so a hung job is invisible both to a failure-only sweep and to GitHub's own failure notifications. That is confirmed observed behaviour on L337-org/apt, not a theory. Sweep all three and pool the results:
