@@ -26,7 +26,7 @@ prompt: |-
 
   **Is work already in flight?** Look for an open PR from a previous run (branch prefix `sdk-audit/`, or a title starting "docker-py SDK"). If one is open, a previous run's work has not been merged yet: do not start a second one. Say so in Slack with the PR number and end the run.
 
-  **Read the exclusions and treat them as binding.** `CLAUDE.md`, Docker SDK Policy, the subsection "SDK audit exclusions (deliberate non-candidates)". Every entry was decided on the merits and is OUT OF SCOPE - never propose it, not even to note it. That list is the only thing stopping you re-filing the same rejected candidates forever. Read it carefully enough to catch the inversion: a hand-built endpoint call or a private-attribute reach-in that the list explains is a deliberate workaround for an upstream bug, NOT a low-level call to migrate onto a public method. "Migrating" one would undo the fix.
+  **Read the exclusions and treat them as binding.** `architecture/docker-sdk.md`, the subsection "SDK audit exclusions (deliberate non-candidates)". `CLAUDE.md`'s Docker SDK Policy is the resident summary and points there; the list itself is in the architecture note, not in `CLAUDE.md`. Every entry was decided on the merits and is OUT OF SCOPE - never propose it, not even to note it. That list is the only thing stopping you re-filing the same rejected candidates forever. Read it carefully enough to catch the inversion: a hand-built endpoint call or a private-attribute reach-in that the list explains is a deliberate workaround for an upstream bug, NOT a low-level call to migrate onto a public method. "Migrating" one would undo the fix.
 
   **Tooling.** Steps below name `gh` for readability; this environment has no `gh`, so use the equivalent `mcp__github__*` tools. Say so only if `gh` appears or an MCP tool fails.
 
@@ -34,9 +34,9 @@ prompt: |-
 
   Use the project's `/docker-sdk` skill (see the Docker SDK Policy in `CLAUDE.md`). Three categories:
 
-  1. Existing low-level `client.api.*` calls (grep `docker_mcp/tools/*.py` for `.api.`) that a high-level SDK method could now replace - check `nodes.py` and `services.py` first, but scan every tools module.
+  1. Existing low-level `client.api.*` calls that a high-level SDK method could now replace. Grep `docker_mcp/tools/*.py` for `\.api\b`, NOT for `.api.`: most call sites bind `api = _get_client(host).api` to a local first and then call `api.inspect_service(...)`, so `.api.` misses them and returns what looks exactly like "no category-1 candidates". At the time of writing `.api.` finds 3 sites in 2 modules and `\.api\b` finds all 8 in 5 (`images.py`, `plugins.py`, `services.py`, `swarm.py`, `system.py`). Scan every tools module; do not trust a clean grep from the narrower pattern.
   2. Net-new Engine API surface docker-py exposes that docker-mcp does not yet cover.
-  3. **Deprecated surface we still depend on** - anything we pass or call that docker-py or the Engine API has renamed, superseded or marked for removal, so a migration happens on our schedule rather than when removal breaks us. Check parameter names against the Engine API spec (`moby/moby`'s `api/swagger.yaml`), not only docker-py's docstrings, which lag. Live example already recorded in `CLAUDE.md`: `image_prune_builds`'s `keep_storage`, renamed `reserved-space` at API v1.48.
+  3. **Deprecated surface we still depend on** - anything we pass or call that docker-py or the Engine API has renamed, superseded or marked for removal, so a migration happens on our schedule rather than when removal breaks us. Check parameter names against the Engine API spec (`moby/moby`'s `api/swagger.yaml`), not only docker-py's docstrings, which lag. Live example already recorded in `architecture/docker-sdk.md`: `image_prune_builds`'s `keep_storage`, renamed `reserved-space` at API v1.48.
 
   Deliberately ignore `compose.py`, `buildx.py`, `scout.py`, `context.py` and `stack.py`: CLI-only features, never part of the Engine API, out of scope.
 
@@ -54,7 +54,7 @@ prompt: |-
 
   ## 3. What you may implement, and what you must escalate instead
 
-  This is the most important rule here, and it matters more now that one routine both finds and fixes. `CLAUDE.md`'s Docker SDK Policy defines a fallback ladder for when the public SDK path does not work: (1) another public SDK path, (2) the correct endpoint through docker-py's private request helpers, (3) a CLI shell-out.
+  This is the most important rule here, and it matters more now that one routine both finds and fixes. `architecture/docker-sdk.md` defines a fallback ladder for when the public SDK path does not work: (1) another public SDK path, (2) the correct endpoint through docker-py's private request helpers, (3) a CLI shell-out.
 
   **Only rung (1) is yours.** Rungs (2) and (3) leave the supported surface and are explicitly not an agent's call to make. If a candidate needs one, STOP: do not implement it. Write up what you found, why the public path fails, and which rung would be needed, and escalate it to Slack for a human decision. Documenting and escalating is the correct outcome, not a failure to finish - this is exactly how `plugin_push` was settled, and a routine that had "helpfully" hand-rolled the call instead would have made a trust decision nobody asked it to make.
 
@@ -87,9 +87,9 @@ prompt: |-
   Silence from you reads as "I audited and there was nothing to do", so it must never also mean either of these:
 
   - **You could not audit or could not implement.** A fetch was blocked (an HTTP 403 carrying `x-deny-reason: host_not_allowed` means the domain is missing from this environment's network allowlist), the repo would not clone, PyPI or GitHub would not answer, the `/docker-sdk` skill was unavailable, the checks would not run, or a push was refused. Name the step and what it stopped you completing. Partial coverage reported as a clean run is the one outcome to avoid.
-  - **Something unexpected happened**, even where you worked around it and finished. A module this prompt names having moved, docker-py restructured so its surface no longer maps onto these instructions, the exclusions subsection rewritten or missing from `CLAUDE.md`, a deprecation with no stated replacement, a version-consistency test asserting something different from section 4. Say what you expected, what you found, and what you did. Treat it as a PROMPT-MAINTENANCE signal rather than an error log: an unanticipated case means a human needs to decide how it should be handled, and this prompt probably needs updating. Report it even when the outcome was fine.
+  - **Something unexpected happened**, even where you worked around it and finished. A module this prompt names having moved, docker-py restructured so its surface no longer maps onto these instructions, the exclusions subsection rewritten, or missing from `architecture/docker-sdk.md`, a deprecation with no stated replacement, a version-consistency test asserting something different from section 4. Say what you expected, what you found, and what you did. Treat it as a PROMPT-MAINTENANCE signal rather than an error log: an unanticipated case means a human needs to decide how it should be handled, and this prompt probably needs updating. Report it even when the outcome was fine.
 
-  If you find something that ought to be permanently excluded but is not on the `CLAUDE.md` list, do not add it yourself - say so in Slack and let a human decide. You cannot update your own configuration.
+  If you find something that ought to be permanently excluded but is not on the `architecture/docker-sdk.md` list, do not add it yourself - say so in Slack and let a human decide. You cannot update your own configuration.
 
   ## 8. Report to Slack
 
