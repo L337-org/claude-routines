@@ -50,6 +50,20 @@ prompt: |-
   user-visible effect above is live (apt.l337.org serving a stale index, `main` with no completed
   CodeQL run). A single self-resolved occurrence is a Slack line, not an issue.
 
+  **Establish "more than once" from run history, not from memory.** You have none, and a previous
+  run's Slack line is not queryable, so a first occurrence deliberately leaves no record you can
+  look up - which would make this rule impossible to apply consistently if you tried. Count it
+  directly instead, for the specific workflow and branch:
+  `gh run list --repo <repo> --workflow "<workflow name>" --branch <branch> --limit 30 --json conclusion,createdAt,url`.
+  Two or more non-success conclusions in that window is "more than once"; one is not.
+  **Do not filter with `--status failure` here.** These fail as `cancelled` at least as often as
+  `failure` - a job hitting `timeout-minutes` reports `cancelled`, which is the same blind spot the
+  aggregate-workflow hang exposed - so count `failure`, `cancelled` and `timed_out` together and
+  ignore a `cancelled` that is an ordinary `cancel-in-progress` supersede (a newer run on the same
+  branch started within a minute or two).
+  If the window holds only one occurrence but you cannot see far enough back to be sure, say which
+  window you checked in the Slack line rather than filing on a guess.
+
   0. TOOLING: steps below name `gh` for readability; this environment has no `gh`, so use the equivalent `mcp__github__*` tools throughout. Say so only if `gh` appears or an MCP tool fails.
 
   1. For each repo, list recent runs whose conclusion was `failure`, `cancelled` or `timed_out` - those three, which are the ones that mean our CI broke. Other non-success conclusions (`skipped`, `action_required`, `neutral`, `stale`) are deliberately out of scope; if you meet one that looks like a real failure, treat it under rule 9 rather than quietly widening the sweep. A `--status failure` sweep is NOT enough on its own: a job killed by its own `timeout-minutes` comes back with `conclusion: cancelled`, never `failure` and never `timed_out`, so a hung job is invisible both to a failure-only sweep and to GitHub's own failure notifications. That is confirmed observed behaviour on L337-org/apt, not a theory. Sweep all three and pool the results:
