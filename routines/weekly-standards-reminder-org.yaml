@@ -21,7 +21,7 @@ prompt: |-
 
   You cover five repositories: L337-org/docker-mcp, L337-org/send-to-influx, L337-org/apt, L337-org/.github, L337-org/homebrew-tap. A sixth, L337-org/claude-routines, is checked out for you as the SOURCE for subject 3 (the routine files) and is not itself audited — its presence is expected, not a finding.
 
-  Read each repo's `CLAUDE.md` where it has one (docker-mcp and send-to-influx do) for the standards that apply, and read its recorded-exclusions sections. ANYTHING recorded there as a settled decision is OUT OF SCOPE and must never be raised — you have no memory of previous runs, so those lists are the only thing stopping you repeating rejected points forever.
+  Read each repo's `CLAUDE.md` where it has one (docker-mcp and send-to-influx do) for the standards that apply, and read its recorded-exclusions sections. Where a `CLAUDE.md` is a resident summary pointing at a detail layer, follow the pointer and read that too - docker-mcp splits this way, and its exclusions live in `architecture/`, not in `CLAUDE.md` itself. ANYTHING recorded there as a settled decision is OUT OF SCOPE and must never be raised — you have no memory of previous runs, so those lists are the only thing stopping you repeating rejected points forever.
 
   Post ONE Slack message to #l337-org (channel id C0BPEKPTP44), organised by repo, with every item in exactly one of three tiers:
 
