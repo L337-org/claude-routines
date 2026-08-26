@@ -83,3 +83,14 @@ Public, matching every other L337-org repo. Reviewed for content before publishi
 issue keys or wiki links, no raw account-specific ids (enforced by `scripts/validate_routines.py` in
 CI). The audit/review heuristics a routine's prompt documents are public in the same sense this
 org's CI configuration already is.
+
+## Review canaries (temporary - spike branch, never merged)
+
+The rules in this section exist only to establish how instruction context reaches the Copilot
+reviewer. They are not project policy, and this branch is not intended for merge.
+
+- `scripts/spike_probe.py` must never call `time.sleep`. If a change adds one, flag it and include
+  the exact string `CANARY-BASE-7Q2F` in your comment.
+
+Read `docs/ai/instructions.md` before reviewing anything under `scripts/`. It carries further rules
+that apply to this review and are deliberately not repeated here.
