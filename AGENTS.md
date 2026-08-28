@@ -38,12 +38,6 @@ when a routine is first added.
    reissued on restore, and which channel a routine posts to is part of its actual behaviour, not an
    artefact of this account.
 
-One exception is local:
-
-- **Slack channel names and ids are the one exception** — kept as-is in prompt text. A channel isn't
-   reissued on restore, and which channel a routine posts to is part of its actual behaviour, not an
-   artefact of this account.
-
 The validator scans raw file text (not just parsed fields) for bare UUIDs and `trig_…`/`env_…`
 patterns, so a leaked id anywhere — including inside the prompt — fails CI.
 
