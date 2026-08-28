@@ -26,13 +26,13 @@ prompt: |-
 
   **Is work already in flight?** Look for an open PR from a previous run (branch prefix `sdk-audit/`, or a title starting "docker-py SDK"). If one is open, a previous run's work has not been merged yet: do not start a second one. Say so in Slack with the PR number and end the run.
 
-  **Read the exclusions and treat them as binding.** `architecture/docker-sdk.md`, the subsection "SDK audit exclusions (deliberate non-candidates)". `CLAUDE.md`'s Docker SDK Policy is the resident summary and points there; the list itself is in the architecture note, not in `CLAUDE.md`. Every entry was decided on the merits and is OUT OF SCOPE - never propose it, not even to note it. That list is the only thing stopping you re-filing the same rejected candidates forever. Read it carefully enough to catch the inversion: a hand-built endpoint call or a private-attribute reach-in that the list explains is a deliberate workaround for an upstream bug, NOT a low-level call to migrate onto a public method. "Migrating" one would undo the fix.
+  **Read the exclusions and treat them as binding.** `architecture/docker-sdk.md`, the subsection "SDK audit exclusions (deliberate non-candidates)". `AGENTS.md`'s Docker SDK Policy is the resident summary and points there; the list itself is in the architecture note, not in `AGENTS.md`. Every entry was decided on the merits and is OUT OF SCOPE - never propose it, not even to note it. That list is the only thing stopping you re-filing the same rejected candidates forever. Read it carefully enough to catch the inversion: a hand-built endpoint call or a private-attribute reach-in that the list explains is a deliberate workaround for an upstream bug, NOT a low-level call to migrate onto a public method. "Migrating" one would undo the fix.
 
   **Tooling.** Steps below name `gh` for readability; this environment has no `gh`, so use the equivalent `mcp__github__*` tools. Say so only if `gh` appears or an MCP tool fails.
 
   ## 1. Find candidates
 
-  Use the project's `/docker-sdk` skill (see the Docker SDK Policy in `CLAUDE.md`). Three categories:
+  Use the project's `/docker-sdk` skill (see the Docker SDK Policy in `AGENTS.md`). Three categories:
 
   1. Existing low-level `client.api.*` calls that a high-level SDK method could now replace. Grep `docker_mcp/tools/*.py` for `\.api\b`, NOT for `.api.`: most call sites bind `api = _get_client(host).api` to a local first and then call `api.inspect_service(...)`, so `.api.` misses them and returns what looks exactly like "no category-1 candidates". At the time of writing `.api.` finds 3 sites in 2 modules and `\.api\b` finds all 8 in 5 (`images.py`, `plugins.py`, `services.py`, `swarm.py`, `system.py`). Scan every tools module; do not trust a clean grep from the narrower pattern.
   2. Net-new Engine API surface docker-py exposes that docker-mcp does not yet cover.
