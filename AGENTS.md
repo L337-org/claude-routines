@@ -23,8 +23,22 @@ when a routine is first added.
 
 ## Redaction rules (enforced by `scripts/validate_routines.py`, not just convention)
 
-The rules on redacting account-specific identifiers come from the shared policy and are not
-restated here. One exception is local:
+1. **No secrets or private data in any routine file.** A prompt is operational instructions, never
+   a place for a credential, token, or anything an attacker could use.
+2. **No routine's own id/URL.** `https://claude.ai/code/routines/{id}` is never stored — a restored
+   routine gets a new id, so the URL is both meaningless for that purpose and not something to
+   publish. Routines are identified and matched **by exact `name` string**, never by id.
+3. **No other account-specific id, for the identical reason.** `connector_uuid` and
+   `environment_id` are reissued on restore exactly like a routine's own id. They're referenced by
+   **name** instead (`environment: Default`, `mcp_connectors: [Slack]`), resolved to the current
+   live id by hand at apply time (see `schema/routine.md`).
+4. **A cross-routine reference inside a `prompt` uses `{{routine: <exact name>}}`**, never a
+   hardcoded `trigger_id`.
+5. **Slack channel names/ids are the one exception** — kept as-is in prompt text. A channel isn't
+   reissued on restore, and which channel a routine posts to is part of its actual behaviour, not an
+   artefact of this account.
+
+One exception is local:
 
 - **Slack channel names and ids are the one exception** — kept as-is in prompt text. A channel isn't
    reissued on restore, and which channel a routine posts to is part of its actual behaviour, not an
@@ -32,6 +46,24 @@ restated here. One exception is local:
 
 The validator scans raw file text (not just parsed fields) for bare UUIDs and `trig_…`/`env_…`
 patterns, so a leaked id anywhere — including inside the prompt — fails CI.
+
+## Applying changes to the live account
+
+There is no automatic apply step, and there permanently won't be — this isn't a gap waiting on a
+fix, it's a settled platform limitation. A cloud routine cannot call `RemoteTrigger`: a routine
+built for exactly this purpose (read this repo, reconcile the live account) searched exhaustively
+for it at runtime and found nothing, despite `RemoteTrigger` being accepted in its `allowed_tools`
+at creation time. Separately, there is no API for creating, updating, or listing routines at all —
+routine management only works from a session with a claude.ai subscription login (the web UI, the
+Desktop app, or the CLI); a stored API credential used by an unattended process was considered and
+ruled out because no such credential exists for this API in the first place, not because of a risk
+tradeoff.
+
+Apply a merged change from an interactive session that has `RemoteTrigger` (or the `schedule`
+skill): read the changed file(s), resolve `environment`/`mcp_connectors` names and any
+`{{routine: …}}` placeholders to live ids by hand, and call `RemoteTrigger action: "create"` /
+`"update"` matching by exact `name`. Never delete a live routine whose file was removed here — the
+API can't anyway — disable it instead.
 
 ## Checklist when adding or changing a routine
 
