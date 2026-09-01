@@ -104,8 +104,12 @@ REVIEW_BODY_MARKERS = ("READ THE REVIEW BODY, NOT ONLY THE THREADS", "get_review
 # reading the file genuinely needs goes in `note:`, which this check deliberately ignores
 # because `note` is not sent to the model.
 PROMPT_DATE_RE = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
-# `#docker-mcp` and `#l337-org` are Slack channels and must not match: require digits.
-PROMPT_ISSUE_RE = re.compile(r"(?<![\w/])[A-Za-z0-9._-]*#\d+\b")
+# Matches a bare `#16`, a repo-qualified `apt#16`, and an org-qualified `L337-org/apt#16`.
+# The last form is the one the prompts actually used and the first cut of this pattern
+# missed it, which is the failure that matters: a false negative in a gate is silent.
+# `#docker-mcp` and `#l337-org` are Slack channels and must not match, which is why digits
+# after the hash are required rather than a word.
+PROMPT_ISSUE_RE = re.compile(r"(?<![\w/])[A-Za-z0-9._-]*(?:/[A-Za-z0-9._-]+)*#\d+\b")
 PROMPT_NARRATION_RE = re.compile(
     r"not a theory|not hypothetical|has leaked this way before|did exactly that"
     r"|confirmed observed behaviour|predates its being written down",
