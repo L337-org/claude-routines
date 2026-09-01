@@ -17,6 +17,11 @@ Checks, per file:
     owning routine/connector/environment by name instead. A cross-routine
     reference inside `prompt` must use the `{{routine: <name>}}` placeholder
     form, never a raw id.
+  - a prompt reads as an instruction rather than a changelog: no dates, no
+    issue or pull request references, no narration asserting that a rule is
+    true. All three are paid for on every run and none changes what the
+    routine does. `note:` is exempt, and is where anything a human genuinely
+    needs goes, since it is not sent to the model.
   - a prompt that instructs opening a pull request also carries the
     review-body guidance. Such a routine is subscribed to its PRs' reviews,
     and an automated reviewer's lower-confidence findings appear only in the
@@ -89,6 +94,39 @@ NEGATED_OPEN_PR_RE = re.compile(
 )
 REVIEW_BODY_MARKERS = ("READ THE REVIEW BODY, NOT ONLY THE THREADS", "get_reviews")
 
+# A prompt is an instruction to a model, not a changelog. Three kinds of text fail that
+# test and are rejected here, because every one of them is paid for on every run and none
+# of them changes what the routine does:
+#   - evidence that a rule is true (incident narration, "not a theory")
+#   - a dated confirmation, which is a state claim with a shelf life
+#   - a specific issue or pull request, which is closed history the routine could read
+# The rationale belongs in the commit message and the decision record; anything a human
+# reading the file genuinely needs goes in `note:`, which this check deliberately ignores
+# because `note` is not sent to the model.
+PROMPT_DATE_RE = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
+# `#docker-mcp` and `#l337-org` are Slack channels and must not match: require digits.
+PROMPT_ISSUE_RE = re.compile(r"(?<![\w/])[A-Za-z0-9._-]*#\d+\b")
+PROMPT_NARRATION_RE = re.compile(
+    r"not a theory|not hypothetical|has leaked this way before|did exactly that"
+    r"|confirmed observed behaviour|predates its being written down",
+    re.IGNORECASE,
+)
+
+
+def check_prompt_is_instructional(path, prompt, errors):
+    """Reject historical narration in a prompt; see PROMPT_* above for the reasoning."""
+    for label, regex, why in (
+        ("a date", PROMPT_DATE_RE, "a dated claim goes stale and the routine cannot tell"),
+        ("an issue or PR reference", PROMPT_ISSUE_RE, "closed history the routine could read for itself"),
+        ("narration", PROMPT_NARRATION_RE, "evidence that the rule is true, which the routine does not act on"),
+    ):
+        for m in regex.finditer(prompt):
+            errors.append(
+                f"{path}: prompt contains {label} ({m.group(0)!r}) - {why}. A prompt is an "
+                f"instruction, not a changelog: move it to `note:` if a human needs it, or to "
+                f"the commit message and the decision record."
+            )
+
 
 def opens_pull_requests(prompt):
     """Whether the prompt instructs opening a pull request.
@@ -158,7 +196,10 @@ def check_file(path, text, data, errors):
     prompt = data.get("prompt")
     if not isinstance(prompt, str) or not prompt.strip():
         errors.append(f"{path}: 'prompt' must be a non-empty string")
-    elif opens_pull_requests(prompt):
+        prompt = ""
+    else:
+        check_prompt_is_instructional(path, prompt, errors)
+    if prompt and opens_pull_requests(prompt):
         absent = [m for m in REVIEW_BODY_MARKERS if m not in prompt]
         if absent:
             errors.append(
@@ -175,7 +216,7 @@ def check_file(path, text, data, errors):
                 f"reviews, and absent cannot be relied on - the web UI writes `false` into it "
                 f"on every edit and its default is undocumented."
             )
-    elif "autofix_on_pr_create" in data:
+    elif prompt and "autofix_on_pr_create" in data:
         errors.append(
             f"{path}: declares 'autofix_on_pr_create' but never opens a pull request, so the "
             f"field does nothing. Remove it - the read-only routines carry no such field live, "
