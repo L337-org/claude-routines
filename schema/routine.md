@@ -55,8 +55,9 @@ read-the-review-body block, which validation also enforces.
 
 ## Why a prompt carries no history
 
-Validation rejects three things in a `prompt`, and they are the same mistake in three
-shapes: text that records why a rule exists rather than telling the routine what to do.
+Validation rejects four things in a `prompt`, and they are the same mistake in four
+shapes: text that records why a rule exists, or what was true when it was written, rather
+than telling the routine what to do.
 
 * **A date.** A dated confirmation is a state claim with a shelf life, and the routine
   cannot tell when it has expired.
@@ -64,6 +65,8 @@ shapes: text that records why a rule exists rather than telling the routine what
   if it needed to, which it does not.
 * **Narration asserting the rule is true** - "not a theory", "it has leaked this way
   before", "that is not hypothetical".
+* **A snapshot of current state** - what a grep finds today, which files a value appears
+  in, which distribution channel is paused, which version is pinned.
 
 Every one of them is sent to the model on every run and none of them changes what the
 routine does. The prompts had accumulated enough of it to be a measurable share of their
@@ -73,6 +76,19 @@ correcting claims that had quietly gone stale.
 The reasoning still has to live somewhere. `note:` takes anything a human reading the file
 needs; the commit message and the decision record take the rest. Slack channel names are
 unaffected, because the issue rule requires digits after the hash.
+
+A snapshot is the one shape `note:` does not fix, so it gets a different remedy and the
+validator says so. A note goes stale on the same schedule as the prompt did; it has only
+stopped being paid for on every run. Point at the artefact that holds the state instead -
+the file, the section, the command - so that a difference found there is a real finding
+rather than this repository disagreeing with reality. Two of these were worse than merely
+stale: the audit routine's record of what its own grep found, and the drift routine's list
+of where a figure appears, are both invalidated by the routine succeeding at its job.
+
+Only the phrases that announce a snapshot are matched, because a bare count cannot be told
+apart from a threshold and thresholds are instructions that must keep working. A snapshot
+written as plain prose passes CI, which is why `AGENTS.md`'s reviewer checklist carries the
+same rule for a human to apply.
 
 ## GitHub access is not a connector
 

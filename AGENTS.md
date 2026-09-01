@@ -79,9 +79,17 @@ API can't anyway — disable it instead.
 - A cross-routine reference uses `{{routine: <exact name>}}`, and that name exists somewhere in this
   repo.
 - The `prompt` reads as an instruction rather than a changelog: no dates, no issue or pull
-  request references, no narration asserting a rule is true. `scripts/validate_routines.py`
-  fails CI on all three, but flag prose that passes the check and still records history
-  rather than instructing. Anything a human needs belongs in `note:`.
+  request references, no narration asserting a rule is true, and no snapshot of what was
+  true when it was written. `scripts/validate_routines.py` fails CI on all four, but flag
+  prose that passes the check and still records history rather than instructing. Anything a
+  human needs belongs in `note:`.
+- The `prompt` states no fact the routine could read for itself. A count, a file list, a
+  version, a branch trigger, which channel is paused: name the file or command that answers
+  it instead. The check catches only the phrases that announce a snapshot ("at the time of
+  writing", "at present"), because a bare number cannot be told apart from a threshold, so
+  a snapshot written as plain prose reaches CI clean and only a reviewer will see it. Each
+  one is a maintenance stream nothing tells you has gone stale, and a routine that edits the
+  thing it describes invalidates its own prompt by succeeding.
 - The `prompt` does not restate what an existing test already asserts. Where CI gates something
   on every pull request, a routine re-checking it monthly finds only what has already failed.
   `scripts/validate_routines.py` cannot see this; a reviewer can.

@@ -145,6 +145,14 @@ INSTRUCTIONAL_CASES = [
      "evidence that a rule is true, which the routine does not act on"),
     ("It has leaked this way before, so none of these checks is optional.", 1,
      "same shape, and the instruction survives without it"),
+    ("At the time of writing the narrower grep finds 3 sites in 2 modules.", 1,
+     "a snapshot the routine can re-derive, and which its own successful run invalidates"),
+    ("The tap is at present dispatch-only, so a release trigger is the finding.", 1,
+     "same shape in a phrasing that does not name writing"),
+    ("As of now the Projects table lists customer-facing repos only.", 1,
+     "and again, since one phrasing being caught proves nothing about the others"),
+    ("Poll every 2 minutes for about 20 minutes, up to 3 fix cycles, and stop at 1%.", 0,
+     "thresholds are instructions: a bare count must never be read as a snapshot"),
 ]
 
 
