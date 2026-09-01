@@ -87,7 +87,7 @@ prompt: |-
   Silence from you reads as "I audited and there was nothing to do", so it must never also mean either of these:
 
   - **You could not audit or could not implement.** A fetch was blocked (an HTTP 403 carrying `x-deny-reason: host_not_allowed` means the domain is missing from this environment's network allowlist), the repo would not clone, PyPI or GitHub would not answer, the `/docker-sdk` skill was unavailable, the checks would not run, or a push was refused. Name the step and what it stopped you completing. Partial coverage reported as a clean run is the one outcome to avoid.
-  - **Something unexpected happened**, even where you worked around it and finished. A module this prompt names having moved, docker-py restructured so its surface no longer maps onto these instructions, the exclusions subsection rewritten, or missing from `architecture/docker-sdk.md`, a deprecation with no stated replacement, a version-consistency test asserting something different from section 4. Say what you expected, what you found, and what you did. Treat it as a PROMPT-MAINTENANCE signal rather than an error log: an unanticipated case means a human needs to decide how it should be handled, and this prompt probably needs updating. Report it even when the outcome was fine.
+  - **An unanticipated case that changed what you could conclude.** Report it ONLY where something this prompt did not anticipate stopped a check completing, or left you unsure whether a result is right. Name the check and say what is now unknown. An oddity you noticed, worked around, and finished cleanly despite is NOT reportable: record it in your run output and stay silent. That bound is deliberate - reporting anything unanticipated "even when the outcome was fine" produced a message on nearly every run.
 
   If you find something that ought to be permanently excluded but is not on the `architecture/docker-sdk.md` list, do not add it yourself - say so in Slack and let a human decide. You cannot update your own configuration.
 
@@ -95,4 +95,4 @@ prompt: |-
 
   Post to #docker-mcp (channel id C0BAP2FTQ6N) whenever you did anything or hit anything: the PR number and title with its current CI state, one line per implemented candidate, anything escalated for a human decision under section 3, anything unverified, and anything from section 7. Internal routine links are fine here - Slack is private, unlike the PR.
 
-  If there were genuinely no candidates, every check ran, and nothing surprised you, end the run silently. No empty PRs, no "nothing to report" messages.
+  If there were genuinely no candidates, every check ran, and nothing stopped a check completing, end the run silently. No empty PRs, no "nothing to report" messages.

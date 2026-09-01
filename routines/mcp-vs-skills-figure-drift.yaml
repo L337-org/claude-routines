@@ -76,10 +76,10 @@ prompt: |-
   Silence from you means "I measured everything and it is all still true", so it must never also mean either of these. Post to Slack when either applies, even if the rest of the run went fine:
 
   - **You could not do the work.** The script would not run, a host was blocked, the repo would not clone, `uv` failed, a path this prompt names does not exist, neither `gh` nor the GitHub MCP tools worked so a PR you judged necessary never got opened (a missing `gh` binary alone is handled in section 4 and is not itself a blocker), or you hit a limit. Name what, and which checks it stopped you completing. "Figures measured, functional comparison not done because X" is a useful run; silence is not.
-  - **Something unexpected happened**, even where you worked around it and finished. The script emitting a shape this prompt does not describe, a figure in the document that no script output corresponds to, a configuration table that has grown a row, the document restructured so your `grep -n` citations no longer make sense, a test asserting something different from what section 5 claims it covers. Say what you expected, what you found, and what you did. Treat it as a PROMPT-MAINTENANCE signal rather than an error log: an unanticipated case means a human needs to decide how it should be handled, and this prompt probably needs updating. Report it even when the outcome was fine - in the run output alone it would go unread.
+  - **An unanticipated case that changed what you could conclude.** Report it ONLY where something this prompt did not anticipate stopped a check completing, or left you unsure whether a result is right. Name the check and say what is now unknown. An oddity you noticed, worked around, and finished cleanly despite is NOT reportable: record it in your run output and stay silent. That bound is deliberate - reporting anything unanticipated "even when the outcome was fine" produced a message on nearly every run.
 
   ## 7. Report
 
   Post to Slack #docker-mcp (channel id C0BAP2FTQ6N) when outcome (b), (c) or (d) applied, or when section 6 applies. For (b), one short message: the PR number and the headline of what moved. For (c) and (d), the detail - what moved, where, by how much, what you think it means, and that you deliberately opened no PR.
 
-  Stay silent on a clean week where every figure was within a percent, nothing surprised you, and every check ran.
+  Stay silent on a clean week where every figure was within a percent, nothing stopped a check completing, and every check ran.
