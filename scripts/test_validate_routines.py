@@ -11,6 +11,10 @@ routine from them - a first attempt at it did exactly that, scanning a fixed win
 substring "never" and so letting an unrelated "NEVER push to `main`" nearby suppress a real
 match. The `autofix_on_pr_create` rule is covered because a routine that loses that field
 stops being woken for its own PRs, silently, and the field is invisible in the web UI.
+`check_prompt_is_instructional` is covered because it is the only check that rejects text
+on judgement rather than shape, so its false positives are what would get it switched off:
+a Slack channel is not an issue reference, and a date placeholder in a branch name is not a
+date.
 """
 
 import sys
@@ -18,7 +22,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from validate_routines import check_file, opens_pull_requests  # noqa: E402
+from validate_routines import (  # noqa: E402
+    check_file,
+    check_prompt_is_instructional,
+    opens_pull_requests,
+)
 
 # (prompt fragment, opens a PR?, what the case is for)
 CASES = [
@@ -56,14 +64,25 @@ def main():
                 f"    autofix={autofix!r} prompt={prompt!r}"
             )
 
-    total = len(CASES) + len(AUTOFIX_CASES)
+    total = len(CASES) + len(AUTOFIX_CASES) + len(INSTRUCTIONAL_CASES)
+    for prompt, expected, why in INSTRUCTIONAL_CASES:
+        got = len(_instructional_errors(prompt))
+        if got != expected:
+            failures.append(
+                f"check_prompt_is_instructional({prompt!r}) gave {got} error(s), "
+                f"expected {expected} - {why}"
+            )
+
     if failures:
         print(f"{len(failures)} of {total} case(s) failed:", file=sys.stderr)
         for failure in failures:
             print(failure, file=sys.stderr)
         return 1
 
-    print(f"OK: {len(CASES)} opens_pull_requests and {len(AUTOFIX_CASES)} autofix case(s) passed")
+    print(
+        f"OK: {len(CASES)} opens_pull_requests, {len(AUTOFIX_CASES)} autofix and "
+        f"{len(INSTRUCTIONAL_CASES)} instructional-prompt case(s) passed"
+    )
     return 0
 
 
@@ -91,6 +110,37 @@ AUTOFIX_CASES = [
     (READ_ONLY, True, 1, "the field does nothing on a routine that opens no PR"),
     (READ_ONLY, False, 1, "likewise false: the file should describe what is configured"),
 ]
+
+# (prompt fragment, expected error count, what the case is for)
+INSTRUCTIONAL_CASES = [
+    ("Post to Slack #docker-mcp (channel id C0BAP2FTQ6N) when a marker disagrees.", 0,
+     "a Slack channel is not an issue reference: the digits rule is what separates them"),
+    ("Branch `sdk-audit/<YYYY-MM-DD>`, which matches no ruleset.", 0,
+     "a date placeholder in a branch name is a template, not a dated claim"),
+    ("File a `ci-failure` issue ONLY if it has happened more than once.", 0,
+     "an instruction that happens to describe recurrence is not narration"),
+    ("Read the workflow's `concurrency` block before deciding.", 0,
+     "the ordinary instructional case must stay clean"),
+    ("As of 2026-08-10 a human confirmed the only rulesets are per-repo.", 1,
+     "a dated confirmation goes stale and the routine cannot tell"),
+    ("Issues filed by earlier runs carry them: apt#1, #2 and send-to-influx#107.", 3,
+     "each issue reference is closed history the routine could read for itself"),
+    ("Two runs reached opposite conclusions on L337-org/apt#16 for this reason.", 1,
+     "the org-qualified form is what the prompts used, and the first pattern missed it"),
+    ("See https://github.com/L337-org/apt/issues/16 for the detail.", 0,
+     "a bare URL carries no hash-digits, so it is not caught by this rule"),
+    ("That is confirmed observed behaviour on L337-org/apt, not a theory.", 2,
+     "evidence that a rule is true, which the routine does not act on"),
+    ("It has leaked this way before, so none of these checks is optional.", 1,
+     "same shape, and the instruction survives without it"),
+]
+
+
+def _instructional_errors(prompt):
+    errors = []
+    check_prompt_is_instructional("routines/example.yaml", prompt, errors)
+    return errors
+
 
 if __name__ == "__main__":
     sys.exit(main())

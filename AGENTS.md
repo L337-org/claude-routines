@@ -73,6 +73,10 @@ API can't anyway — disable it instead.
   `scripts/validate_routines.py` should already have failed CI if so, but flag it if seen.
 - A cross-routine reference uses `{{routine: <exact name>}}`, and that name exists somewhere in this
   repo.
+- The `prompt` reads as an instruction rather than a changelog: no dates, no issue or pull
+  request references, no narration asserting a rule is true. `scripts/validate_routines.py`
+  fails CI on all three, but flag prose that passes the check and still records history
+  rather than instructing. Anything a human needs belongs in `note:`.
 - `README.md`'s summary table reflects the change.
 - Renaming a routine's `name` is delete+create, not a rename, on the live side — whoever next
   applies this repo by hand should disable the old name as an orphan, which is expected but worth
