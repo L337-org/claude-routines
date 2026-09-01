@@ -13,7 +13,7 @@ the exact rules.
 | `environment` | yes | string | The environment's **name** (e.g. `Default`), never its `environment_id`. See "Why no raw ids" below. |
 | `repositories` | yes | list of URLs | `https://github.com/...` sources the routine's session is given. |
 | `allowed_tools` | yes | list of strings | Tool names the routine's session may use. |
-| `mcp_connectors` | no | list of strings | MCP connector **names** exactly as the platform spells them - `Slack`, `Atlassian-Rovo` (a hyphen, not an underscore) attached via <https://claude.ai/customize/connectors>, never `connector_uuid`. **Never list `GitHub` here** - see "GitHub access is not a connector" below. |
+| `mcp_connectors` | no | list of strings | MCP connector **names**, spelled exactly as the platform does: `Slack`, and `Atlassian-Rovo` with a hyphen rather than an underscore. Attached via <https://claude.ai/customize/connectors>, and never `connector_uuid`. **Never list `GitHub` here** - see "GitHub access is not a connector" below. |
 | `network_allowlist` | no | list of hostnames | Domains this routine's cloud environment needs on its outbound allowlist to do its job (bare hostnames, no scheme/path). Best-effort - populated from domains a routine's own prompt explicitly names as required, not an exhaustive audit of every fetch target. Extend it when a routine reports a blocked domain it needs. **Not part of the live routine config** (like `note`): the allowlist belongs to the shared *environment*, so this field records what that environment must permit for the routine to work, and `RemoteTrigger` never returns it. Absence from live config is expected, not drift. Declare a host only where the prompt actually instructs a fetch of it - a host merely mentioned in passing does not belong here. |
 | `autofix_on_pr_create` | only if the routine opens PRs | boolean | Must be `true` on any routine whose prompt instructs opening a pull request, and absent on every other routine. Validation enforces both. See "Why autofix_on_pr_create must be true, explicitly" below. |
 | `note` | no | string | Context for a human reading this file. Not part of the live routine config, and exempt from the prompt-content rule below - so it is where a date, an incident or an issue reference goes when a human needs it and the routine does not. |
@@ -94,7 +94,8 @@ declaration here.
 
 `mcp_connections` requires a `connector_uuid`; the API will not resolve a connector by name. An
 update passing only `{"name": "Atlassian-Rovo"}` is rejected with
-`mcp_connections.0.connector_uuid: Field required`, atomically, so nothing is changed.
+`mcp_connections.<n>.connector_uuid: Field required`, where `<n>` is that entry's position in the
+list. The rejection is atomic, so nothing is changed.
 
 A connector being connected at account level does not make it addressable. Its uuid has to come out
 of the platform once: add it to a routine through the web interface, read the uuid back with

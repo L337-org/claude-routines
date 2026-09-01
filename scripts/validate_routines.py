@@ -17,8 +17,6 @@ Checks, per file:
     owning routine/connector/environment by name instead. A cross-routine
     reference inside `prompt` must use the `{{routine: <name>}}` placeholder
     form, never a raw id.
-  - every routine file appears in README.md's summary table under its exact
-    `name`, and the table links nothing that does not exist
   - a prompt reads as an instruction rather than a changelog: no dates, no
     issue or pull request references, no narration asserting that a rule is
     true. All three are paid for on every run and none changes what the
@@ -31,6 +29,11 @@ Checks, per file:
     report "no new findings" on a review that holds a real one. Prompts that
     never open a PR are exempt - see `opens_pull_requests`, whose own cases
     live in `scripts/test_validate_routines.py`.
+
+Across all files:
+  - every {{routine: <name>}} placeholder names a routine that exists here
+  - every routine file appears in README.md's summary table under its exact
+    `name`, and the table links nothing that does not exist
 
 Exits non-zero (and prints every failure, not just the first) if any file
 fails any check.

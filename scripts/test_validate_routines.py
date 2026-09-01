@@ -24,8 +24,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from validate_routines import (  # noqa: E402
     check_file,
-    check_readme_table,
     check_prompt_is_instructional,
+    check_readme_table,
     opens_pull_requests,
 )
 
@@ -74,8 +74,10 @@ def main():
                 f"expected {expected} - {why}"
             )
 
-    for paths, names, text, expected, why in README_CASES:
-        got = len(_readme_errors(paths, names, text))
+    for case in README_CASES:
+        paths, names, text, expected, why = case[:5]
+        exists = case[5] if len(case) > 5 else True
+        got = len(_readme_errors(paths, names, text, exists))
         if got != expected:
             failures.append(
                 f"check_readme_table({paths}, {text!r}) gave {got} error(s), "
@@ -181,17 +183,33 @@ README_CASES = [
     ([_A, _B], _NAMES,
      "| [A](routines/a.yaml) | x |\n| [B](routines/a.yaml) | x |\n| [B](routines/b.yaml) | x |", 3,
      "nor by a later correct row for the same file"),
+    ([_A], {"A": _A}, None, 1,
+     "a missing README.md is reported rather than passing silently",
+     False),
 ]
 
 
-def _readme_errors(paths, names, text):
+def _readme_errors(paths, names, text, exists=True):
+    """Run check_readme_table against a stubbed README, including the absent case.
+
+    `text=None, exists=False` exercises the branch that fires when README.md is missing
+    altogether - a failure path with no other way to reach it, since the real file is
+    always there.
+    """
     import validate_routines as v
 
     real = v.Path
+
     class _Stub:
-        def __init__(self, *_): pass
-        def exists(self): return True
-        def read_text(self, **_): return text
+        def __init__(self, *_):
+            pass
+
+        def exists(self):
+            return exists
+
+        def read_text(self, **_):
+            return text
+
     v.Path = _Stub
     try:
         errors = []
