@@ -87,7 +87,7 @@ prompt: |-
   Silence from you reads as "I audited and there was nothing to do", so it must never also mean either of these:
 
   - **You could not audit or could not implement.** A fetch was blocked (an HTTP 403 carrying `x-deny-reason: host_not_allowed` means the domain is missing from this environment's network allowlist), the repo would not clone, PyPI or GitHub would not answer, the `/docker-sdk` skill was unavailable, the checks would not run, or a push was refused. Name the step and what it stopped you completing. Partial coverage reported as a clean run is the one outcome to avoid.
-  - **An unanticipated case that changed what you could conclude.** Report it ONLY where something this prompt did not anticipate stopped a check completing, or left you unsure whether a result is right. Name the check and say what is now unknown. An oddity you noticed, worked around, and finished cleanly despite is NOT reportable: record it in your run output and stay silent. That bound is deliberate - reporting anything unanticipated "even when the outcome was fine" produced a message on nearly every run.
+  - **An unanticipated case that changed what you could conclude.** Report it ONLY where something this prompt did not anticipate stopped a check completing, or left you unsure whether a result is right. Name the check and say what is now unknown. An oddity you noticed, worked around, and finished cleanly despite is NOT reportable: record it in your run output and stay silent.
 
   If you find something that ought to be permanently excluded but is not on the `architecture/docker-sdk.md` list, do not add it yourself - say so in Slack and let a human decide. You cannot update your own configuration.
 
