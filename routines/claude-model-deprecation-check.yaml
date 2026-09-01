@@ -28,26 +28,29 @@ prompt: |-
      use.
 
   2. Fetch Anthropic's own current model status — do not rely on your training data, it may already
-     be stale. WebFetch both:
-       - https://platform.claude.com/docs/en/about-claude/models/overview.md (current/active models)
-       - https://platform.claude.com/docs/en/about-claude/models/migration-guide.md (deprecated and
-         retired models, with retirement dates and recommended replacements)
-     If either fetch is blocked (an HTTP 403 carrying `x-deny-reason: host_not_allowed` means the
+     be stale. WebFetch
+     https://platform.claude.com/docs/en/about-claude/model-deprecations.md and read its
+     `Model status` table, which lists every model with its state and both dates. That one page
+     answers the whole question; do not fetch anything else.
+     If the fetch is blocked (an HTTP 403 carrying `x-deny-reason: host_not_allowed` means the
      domain is missing from this environment's network allowlist), that is not evidence either way
      about any model's status — report exactly that, once, naming the blocked host, and say the
      domain needs adding to the environment's allowed domains.
 
-  3. For each distinct model id in use, classify it as one of:
+  3. Read each distinct model id straight out of the `Model status` table. Its state is whatever
+     that table says:
        - Active — no action needed.
        - Deprecated — still works, but has an announced retirement date.
        - Retired — already returns 404; already broken.
+     A model id absent from the table entirely is a finding in its own right: say so rather than
+     assuming it is Active.
      Do NOT flag a model just because a newer generation exists. Only Deprecated and Retired are
      findings — those are the two states where waiting has a real, dated consequence; a superseded
      but still-Active model is a judgement call for a human, not something to report.
 
   4. For anything Deprecated or Retired, name: which `routines/*.yaml` file(s) use it, the exact
-     retirement date (or "already retired" if it has passed), and the documented replacement model
-     id from the migration guide.
+     retirement date (or "already retired" if it has passed), and the replacement the same page
+     recommends.
 
   SLACK. Post to #l337-org (channel id C0BPEKPTP44) when any in-use model is Deprecated or Retired,
   or when you could not complete the check (the blocked-fetch case in step 2). Name every affected

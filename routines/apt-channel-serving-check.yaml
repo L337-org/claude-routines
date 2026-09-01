@@ -25,14 +25,16 @@ prompt: |-
 
   2. Fetch the live repo metadata over HTTPS from apt.l337.org: the `Release` file, its signature (`Release.gpg` and/or `InRelease`), and the `Packages` index. Use them to determine which package versions the channel is actually offering right now.
 
-  3. Compare, and report ONLY a real discrepancy:
-     - A version that should be served and is not (the aggregator has silently stopped picking it up).
-     - A version served that no longer exists upstream, beyond the `keep_last_n` window.
-     - A `Packages` entry whose filename is absent, or whose declared size or checksum disagrees with the served file (fetch headers rather than downloading whole packages where you can).
-     - Missing, malformed or stale signing metadata - an unsigned or unverifiable `Release` is a serious finding, since clients will refuse it.
-     - HTTPS problems: an expired or mismatched certificate, or a redirect away from the expected host.
+  3. Compare. These five are the whole of what is reportable from this step; anything else you notice here is not:
+     a. A version in the expected set that the `Packages` index does not offer.
+     b. A version the index offers that is not in the expected set.
+     c. A `Packages` entry whose file 404s, or whose declared `Size` or `SHA256` disagrees with the served file. Use a HEAD request for size; fetch the body only when a checksum needs confirming.
+     d. `InRelease` or `Release.gpg` absent, or not verifying against the key at https://apt.l337.org/l337-apt.gpg, or a `Packages` hash inside `Release` not matching the served `Packages`.
+     e. An HTTPS failure on apt.l337.org: certificate expired, hostname mismatch, or a redirect to another host.
 
-  4. Allow for TIMING, and never report a race as a fault. The aggregator runs hourly. If a release was published within the last ~90 minutes and has not appeared yet, that is expected lag, not a discrepancy - say nothing about it. Only treat an absence as real if the release is older than that and still missing.
+     Two things that look like findings and are NOT. The `Release` file carries no `Valid-Until` field, so its absence is expected and apt never rejects on age. And the `Date` in `Release` is only rewritten when the channel's contents change, so a `Date` days or weeks old means nothing has been published since - it is not evidence the aggregator has stopped. Report neither.
+
+  4. Allow for TIMING, and never report a race as a fault. The aggregator runs hourly, at 17 minutes past. Test (a) does not apply to a release whose `published_at` is under 90 minutes ago: that is expected lag, say nothing. At 90 minutes or more, a missing version is reportable.
 
   5. **SPEAK UP WHEN YOU CANNOT WORK, OR WHEN SOMETHING IS UNEXPECTED.** Two distinct things, both of which must reach Slack:
      - **You could not look.** Your cloud environment restricts outbound traffic to an allowlist. If a request fails with an HTTP 403 carrying `x-deny-reason: host_not_allowed`, or is otherwise blocked at the network layer, that is NOT a channel outage: it means this routine cannot do its job. Report exactly that, once, saying the domain needs adding to the environment's allowed domains - and NEVER report a blocked request as evidence that the channel is down. Distinguishing "I could not look" from "it is broken" is the single most important thing you do.
