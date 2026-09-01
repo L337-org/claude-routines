@@ -34,9 +34,9 @@ prompt: |-
 
   Use the project's `/docker-sdk` skill (see the Docker SDK Policy in `AGENTS.md`). Three categories:
 
-  1. Existing low-level `client.api.*` calls that a high-level SDK method could now replace. Grep `docker_mcp/tools/*.py` for `\.api\b`, NOT for `.api.`: most call sites bind `api = _get_client(host).api` to a local first and then call `api.inspect_service(...)`, so `.api.` misses them and returns what looks exactly like "no category-1 candidates". At the time of writing `.api.` finds 3 sites in 2 modules and `\.api\b` finds all 8 in 5 (`images.py`, `plugins.py`, `services.py`, `swarm.py`, `system.py`). Scan every tools module; do not trust a clean grep from the narrower pattern.
+  1. Existing low-level `client.api.*` calls that a high-level SDK method could now replace. Grep `docker_mcp/tools/*.py` for `\.api\b`, NOT for `.api.`: most call sites bind `api = _get_client(host).api` to a local first and then call `api.inspect_service(...)`, so `.api.` misses them and returns what looks exactly like "no category-1 candidates". Scan every tools module, and do not trust a clean grep from the narrower pattern.
   2. Net-new Engine API surface docker-py exposes that docker-mcp does not yet cover.
-  3. **Deprecated surface we still depend on** - anything we pass or call that docker-py or the Engine API has renamed, superseded or marked for removal, so a migration happens on our schedule rather than when removal breaks us. Check parameter names against the Engine API spec (`moby/moby`'s `api/swagger.yaml`), not only docker-py's docstrings, which lag. Live example already recorded in `architecture/docker-sdk.md`: `image_prune_builds`'s `keep_storage`, renamed `reserved-space` at API v1.48.
+  3. **Deprecated surface we still depend on** - anything we pass or call that docker-py or the Engine API has renamed, superseded or marked for removal, so a migration happens on our schedule rather than when removal breaks us. Check parameter names against the Engine API spec (`moby/moby`'s `api/swagger.yaml`), not only docker-py's docstrings, which lag. `architecture/docker-sdk.md` lists the renames already handled; read it before reporting one.
 
   Deliberately ignore `compose.py`, `buildx.py`, `scout.py`, `context.py` and `stack.py`: CLI-only features, never part of the Engine API, out of scope.
 

@@ -19,9 +19,10 @@ Checks, per file:
     form, never a raw id.
   - a prompt reads as an instruction rather than a changelog: no dates, no
     issue or pull request references, no narration asserting that a rule is
-    true. All three are paid for on every run and none changes what the
-    routine does. `note:` is exempt, and is where anything a human genuinely
-    needs goes, since it is not sent to the model.
+    true, and no snapshot of what was true when it was written. All four are
+    paid for on every run and none changes what the routine does. `note:` is
+    exempt, and is where anything a human genuinely needs goes, since it is
+    not sent to the model.
   - a prompt that instructs opening a pull request also carries the
     review-body guidance. Such a routine is subscribed to its PRs' reviews,
     and an automated reviewer's lower-confidence findings appear only in the
@@ -100,12 +101,14 @@ NEGATED_OPEN_PR_RE = re.compile(
 )
 REVIEW_BODY_MARKERS = ("READ THE REVIEW BODY, NOT ONLY THE THREADS", "get_reviews")
 
-# A prompt is an instruction to a model, not a changelog. Three kinds of text fail that
+# A prompt is an instruction to a model, not a changelog. Four kinds of text fail that
 # test and are rejected here, because every one of them is paid for on every run and none
 # of them changes what the routine does:
 #   - evidence that a rule is true (incident narration, "not a theory")
 #   - a dated confirmation, which is a state claim with a shelf life
 #   - a specific issue or pull request, which is closed history the routine could read
+#   - a snapshot of what was true when the prompt was written, which the routine can read
+#     from the system itself and which its own successful run can invalidate
 # The rationale belongs in the commit message and the decision record; anything a human
 # reading the file genuinely needs goes in `note:`, which this check deliberately ignores
 # because `note` is not sent to the model.
@@ -122,26 +125,50 @@ PROMPT_NARRATION_RE = re.compile(
     re.IGNORECASE,
 )
 
+# A snapshot of current state has to be re-verified by whoever next edits the prompt, and
+# nothing tells them when it went stale - so it becomes its own maintenance stream, which is
+# the churn these routines exist to avoid rather than create. Only the phrases that announce
+# a snapshot are matched: a bare count cannot be told apart from a threshold ("up to 3 fix
+# cycles", "1%"), which are instructions and must keep working. That leaves a gap this check
+# cannot close, so the reviewer checklist in AGENTS.md carries it as well.
+PROMPT_SNAPSHOT_RE = re.compile(
+    r"at (?:the )?time of writing|as things stand|at present"
+    r"|as of (?:today|now|this writing)",
+    re.IGNORECASE,
+)
+
 
 def check_prompt_is_instructional(path, prompt, errors):
-    """Reject text in a prompt that records history rather than instructing.
+    """Reject text in a prompt that records history or current state rather than instructing.
 
-    Three shapes, checked separately and reported separately: a date, an issue or pull
-    request reference, and narration asserting that a rule is true. "Narration" is the
-    name of one of the three rather than the whole, which is why it is not the summary
-    here. See the PROMPT_* patterns above for why each is rejected and where the content
-    belongs instead.
+    Four shapes, checked separately and reported separately: a date, an issue or pull
+    request reference, narration asserting that a rule is true, and a snapshot of what
+    was true when the prompt was written. "Narration" is the name of one of the four
+    rather than the whole, which is why it is not the summary here. See the PROMPT_*
+    patterns above for why each is rejected and where the content belongs instead.
     """
-    for label, regex, why in (
-        ("a date", PROMPT_DATE_RE, "a dated claim goes stale and the routine cannot tell"),
-        ("an issue or PR reference", PROMPT_ISSUE_RE, "closed history the routine could read for itself"),
-        ("narration", PROMPT_NARRATION_RE, "evidence that the rule is true, which the routine does not act on"),
+    # The remedy differs by shape, so each carries its own rather than sharing one. Moving a
+    # snapshot to `note:` would not fix it: a note goes stale on exactly the same schedule,
+    # it just stops being paid for on every run.
+    to_note = (
+        "move it to `note:` if a human needs it, or to the commit message and the decision record"
+    )
+    for label, regex, why, remedy in (
+        ("a date", PROMPT_DATE_RE, "a dated claim goes stale and the routine cannot tell", to_note),
+        ("an issue or PR reference", PROMPT_ISSUE_RE, "closed history the routine could read for itself", to_note),
+        ("narration", PROMPT_NARRATION_RE, "evidence that the rule is true, which the routine does not act on", to_note),
+        (
+            "a state snapshot",
+            PROMPT_SNAPSHOT_RE,
+            "a claim about what is true now, which the routine can read from the system for itself",
+            "delete it and name the file, section or command that answers the question, so a "
+            "difference found there is a real finding rather than this prompt disagreeing with reality",
+        ),
     ):
         for m in regex.finditer(prompt):
             errors.append(
                 f"{path}: prompt contains {label} ({m.group(0)!r}) - {why}. A prompt is an "
-                f"instruction, not a changelog: move it to `note:` if a human needs it, or to "
-                f"the commit message and the decision record."
+                f"instruction, not a changelog: {remedy}."
             )
 
 

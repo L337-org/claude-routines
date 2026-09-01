@@ -35,7 +35,7 @@ prompt: |-
   6. FILE. The project follows the CAUSE, not the repo the run failed in:
      - docker-mcp -> DM
      - send-to-influx -> SI
-     - apt -> SI where the failure comes from the artefact being published, which is the usual case, because send-to-influx is currently apt's only producer. LO only where the fix genuinely belongs in the apt repo itself, which is rare. If you cannot tell, file in SI and say in the description that the cause is unconfirmed.
+     - apt -> SI where the failure comes from the artefact being published, which is the usual case. LO only where the fix genuinely belongs in the apt repo itself, which is rare. If you cannot tell, file in SI and say in the description that the cause is unconfirmed.
      Type: `Bug` for a product or test defect. `Infrastructure` for a persistently recurring infrastructure failure or an observability gap.
      The description states: which workflow and job failed, the run URL, the verbatim failing output bounded to the relevant excerpt rather than the whole log, your category, and what a human needs to decide if you could not fix it.
      LEAVE THE ISSUE WHERE IT LANDS. Never transition it, never assign it, never set a priority or a fix version. Prioritising is the owner's act and it is not delegable to you.

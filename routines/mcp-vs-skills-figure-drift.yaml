@@ -32,7 +32,7 @@ prompt: |-
 
   ## 2. Compare, and cite where each figure lives
 
-  For every figure the script emits, find what the document currently claims and where. Use `grep -n` so you can cite `MCP_VS_SKILLS.md:<line>` for each one: a report that says a number moved without saying which line says otherwise is not actionable. Remember one value can appear in several places - the eager idle total appears in the at-a-glance table, the configuration table, the idle table and twice in prose - so grep for the value, not just the first hit.
+  For every figure the script emits, find what the document currently claims and where. Use `grep -n` so you can cite `MCP_VS_SKILLS.md:<line>` for each one: a report that says a number moved without saying which line says otherwise is not actionable. One value can appear in several places, so grep for the value and correct every occurrence, not the first hit.
 
   Watch for a figure the script does NOT emit but the document quotes as measured. That is a gap in the script, not a clean result: report it (section 6) rather than passing over it.
 
