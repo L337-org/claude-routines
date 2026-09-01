@@ -45,14 +45,14 @@ routine's actual functional behaviour (which channel it posts to), not an artefa
 
 | Name | Schedule (UTC) | Enabled | Repositories | Purpose |
 |---|---|---|---|---|
-| [MCP surface standard audit](routines/mcp-surface-standard-audit.yaml) | Monthly, 8th 09:00 | ✅ | docker-mcp, send-to-influx | Audits both MCP servers' tool surfaces against the org's AI-consumer tool-quality standard. |
+| [MCP surface standard audit](routines/mcp-surface-standard-audit.yaml) | Monthly, 8th 09:00 | ✅ | docker-mcp, send-to-influx | Checks the tool-surface guard tests in both repos still assert what they claim, and reviews recently-changed docstring prose in docker-mcp. |
 | [MCP Registry marker drift](routines/mcp-registry-marker-drift.yaml) | Weekly, Wed 08:30 | ✅ | docker-mcp | Checks docker-mcp's MCP Registry ownership markers and listing haven't drifted from `server.json`. |
 | [APT channel serving check](routines/apt-channel-serving-check.yaml) | Daily 07:40 | ✅ | apt, send-to-influx | Confirms the apt.l337.org APT channel actually serves an installable package, from the outside. |
 | [Blocked-on-upstream re-evaluation](routines/blocked-on-upstream-re-evaluation.yaml) | Monthly, 1st 09:00 | ✅ | send-to-influx, docker-mcp, homebrew-tap | Re-tests recorded upstream blockers (e.g. the Homebrew dylib issue) to see if any have cleared. |
 | [Weekly standards reminder (org)](routines/weekly-standards-reminder-org.yaml) | Weekly, Fri 08:15 | ✅ | docker-mcp, send-to-influx, apt, .github, homebrew-tap | Org-wide sweep for policy drift (action pins, lockfiles, instruction files, CI coverage, `.github` content). |
 | [send-to-influx ci-failure responder](routines/send-to-influx-ci-failure-responder.yaml) | Every 6h | ✅ | send-to-influx, apt | Triages open `ci-failure` issues: investigates, fixes, or stands down for a human. |
 | [ci-failure responder](routines/ci-failure-responder.yaml) | Every 6h | ✅ | docker-mcp | Triages open `ci-failure` issues: investigates, fixes, or stands down for a human. |
-| [Glama listing drift check](routines/glama-listing-drift-check.yaml) | Weekly, Wed 08:00 | ✅ | docker-mcp | Checks docker-mcp's Glama.ai directory listing (grade, metadata) for drift from the live repo. |
+| [Glama listing drift check](routines/glama-listing-drift-check.yaml) | Weekly, Wed 08:00 | ✅ | docker-mcp | Compares the three letter grades on docker-mcp's Glama.ai listing against a fixed baseline. Grades only; no metadata and no repo comparison. |
 | [MCP vs skills figure drift](routines/mcp-vs-skills-figure-drift.yaml) | Weekly, Thu 07:00 | ✅ | docker-mcp | Re-measures `MCP_VS_SKILLS.md`'s figures and the server/skill functional comparison; opens a PR when a movement is worth republishing. |
 | [docker-py SDK audit](routines/docker-py-sdk-audit.yaml) | Weekly, Mon 08:00 | ✅ | docker-mcp | Detects docker-py SDK coverage gaps / deprecated surface, implements the safe ones and opens a PR. |
 | [Claude model deprecation check](routines/claude-model-deprecation-check.yaml) | Monthly, 15th 09:00 | ✅ | claude-routines | Checks every `model:` value used in this repo against Anthropic's published deprecation/retirement dates. |
