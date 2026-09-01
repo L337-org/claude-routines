@@ -85,11 +85,9 @@ API can't anyway — disable it instead.
   human needs belongs in `note:`.
 - The `prompt` states no fact the routine could read for itself. A count, a file list, a
   version, a branch trigger, which channel is paused: name the file or command that answers
-  it instead. The check catches only the phrases that announce a snapshot ("at the time of
-  writing", "at present"), because a bare number cannot be told apart from a threshold, so
-  a snapshot written as plain prose reaches CI clean and only a reviewer will see it. Each
-  one is a maintenance stream nothing tells you has gone stale, and a routine that edits the
-  thing it describes invalidates its own prompt by succeeding.
+  it instead. `scripts/validate_routines.py` catches only the phrases that announce a
+  snapshot ("at the time of writing", "at present"), so one written as plain prose reaches
+  CI clean and only a reviewer will see it. `schema/routine.md` carries the reasoning.
 - The `prompt` does not restate what an existing test already asserts. Where CI gates something
   on every pull request, a routine re-checking it monthly finds only what has already failed.
   `scripts/validate_routines.py` cannot see this; a reviewer can.
