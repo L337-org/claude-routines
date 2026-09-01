@@ -269,9 +269,19 @@ def check_readme_table(paths, names_seen, errors):
         errors.append("README.md is missing, so its routine table cannot be checked")
         return
     text = readme.read_text(encoding="utf-8")
-    linked = dict(re.findall(r"\| \[([^\]]+)\]\(routines/([a-z0-9-]+\.yaml)\)", text))
+    # A list of pairs, never a dict. Collapsing them by name silently discards a duplicate row,
+    # so a wrong row would pass whenever a correct row for the same name appeared later - the
+    # table could hold two contradictory entries and validate clean.
+    rows = re.findall(r"\| \[([^\]]+)\]\(routines/([a-z0-9-]+\.yaml)\)", text)
     filenames = {p.split("/")[-1] for p in paths}
-    for name, filename in linked.items():
+    seen_names, seen_files = set(), set()
+    for name, filename in rows:
+        if name in seen_names:
+            errors.append(f"README.md's table lists {name!r} on more than one row")
+        seen_names.add(name)
+        if filename in seen_files:
+            errors.append(f"README.md's table links routines/{filename} on more than one row")
+        seen_files.add(filename)
         path = f"routines/{filename}"
         if filename not in filenames:
             errors.append(f"README.md's table links {path}, which does not exist")
@@ -287,7 +297,7 @@ def check_readme_table(paths, names_seen, errors):
                 f"README.md's table calls {path} {name!r}, but that name {belongs} - "
                 f"matching between this repo and the live account is by exact name"
             )
-    for filename in sorted(filenames - set(linked.values())):
+    for filename in sorted(filenames - seen_files):
         errors.append(f"routines/{filename} is missing from README.md's summary table")
 
 

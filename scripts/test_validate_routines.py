@@ -175,6 +175,12 @@ README_CASES = [
     ([_A, _B], _NAMES,
      "| [A](routines/a.yaml) | x |\n| [B](routines/b.yaml) | x |", 0,
      "the same two rows, correctly paired, must stay clean"),
+    ([_A, _B], _NAMES,
+     "| [B](routines/a.yaml) | x |\n| [B](routines/b.yaml) | x |", 2,
+     "a wrong row must not be excused by a later correct row for the same name"),
+    ([_A, _B], _NAMES,
+     "| [A](routines/a.yaml) | x |\n| [B](routines/a.yaml) | x |\n| [B](routines/b.yaml) | x |", 3,
+     "nor by a later correct row for the same file"),
 ]
 
 
