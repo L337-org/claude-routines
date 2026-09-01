@@ -76,7 +76,7 @@ prompt: |-
   Silence from you means "I measured everything and it is all still true", so it must never also mean either of these. Post to Slack when either applies, even if the rest of the run went fine:
 
   - **You could not do the work.** The script would not run, a host was blocked, the repo would not clone, `uv` failed, a path this prompt names does not exist, neither `gh` nor the GitHub MCP tools worked so a PR you judged necessary never got opened (a missing `gh` binary alone is handled in section 4 and is not itself a blocker), or you hit a limit. Name what, and which checks it stopped you completing. "Figures measured, functional comparison not done because X" is a useful run; silence is not.
-  - **An unanticipated case that changed what you could conclude.** Report it ONLY where something this prompt did not anticipate stopped a check completing, or left you unsure whether a result is right. Name the check and say what is now unknown. An oddity you noticed, worked around, and finished cleanly despite is NOT reportable: record it in your run output and stay silent.
+  - **An unanticipated case that changed what you could conclude.** Report it ONLY where something this prompt did not anticipate stopped a check completing, or left you unsure whether a result is right. Name the check and say what is now unknown. If you noticed something odd, worked around it and finished cleanly, that is NOT reportable: record it in your run output and stay silent.
 
   ## 7. Report
 

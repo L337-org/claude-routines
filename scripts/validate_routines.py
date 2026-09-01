@@ -200,6 +200,12 @@ def check_file(path, text, data, errors):
     prompt = data.get("prompt")
     if not isinstance(prompt, str) or not prompt.strip():
         errors.append(f"{path}: 'prompt' must be a non-empty string")
+        # Deliberately no autofix_on_pr_create error in this branch, though the field may
+        # well be wrong. Both autofix rules are decided by reading the prompt, so with no
+        # usable prompt we cannot know whether the routine opens pull requests, and an
+        # error asserting the field "does nothing" would be a claim we cannot support.
+        # The file already fails on the prompt; a second error guessing at the cause of
+        # the first is worse than none. Every other check below still runs.
         prompt = ""
     else:
         check_prompt_is_instructional(path, prompt, errors)
