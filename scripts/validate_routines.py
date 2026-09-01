@@ -272,12 +272,20 @@ def check_readme_table(paths, names_seen, errors):
     linked = dict(re.findall(r"\| \[([^\]]+)\]\(routines/([a-z0-9-]+\.yaml)\)", text))
     filenames = {p.split("/")[-1] for p in paths}
     for name, filename in linked.items():
+        path = f"routines/{filename}"
         if filename not in filenames:
-            errors.append(f"README.md's table links routines/{filename}, which does not exist")
-        elif name not in names_seen:
+            errors.append(f"README.md's table links {path}, which does not exist")
+        elif names_seen.get(name) != path:
+            # Deliberately compares which file the name belongs to, not merely whether some
+            # routine has it. Checking membership alone would pass a table whose rows had their
+            # labels swapped: both names exist, both files exist, and every row is wrong. The
+            # live apply step matches by exact name, so a swapped label points the reader at the
+            # wrong file for the routine they are about to change.
+            owner = names_seen.get(name)
+            belongs = f"belongs to {owner}" if owner else "belongs to no routine in this repo"
             errors.append(
-                f"README.md's table calls routines/{filename} {name!r}, but the file's `name` "
-                f"is different - matching between this repo and the live account is by exact name"
+                f"README.md's table calls {path} {name!r}, but that name {belongs} - "
+                f"matching between this repo and the live account is by exact name"
             )
     for filename in sorted(filenames - set(linked.values())):
         errors.append(f"routines/{filename} is missing from README.md's summary table")

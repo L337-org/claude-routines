@@ -153,21 +153,33 @@ def _instructional_errors(prompt):
 
 
 # (files, names, README text, expected error count, what the case is for)
+# `names_seen` is a dict of name -> path, exactly as check_file() builds it. Passing a set here
+# instead was what let the swapped-label case below go unnoticed: membership was all the test
+# could express, so membership was all the check did.
+_A = "routines/a.yaml"
+_B = "routines/b.yaml"
+_NAMES = {"A": _A, "B": _B}
+
 README_CASES = [
-    (["routines/a.yaml"], {"A"}, "| [A](routines/a.yaml) | x |", 0,
+    ([_A], {"A": _A}, "| [A](routines/a.yaml) | x |", 0,
      "a file listed under its exact name is the clean case"),
-    (["routines/a.yaml"], {"A"}, "nothing here", 1,
+    ([_A], {"A": _A}, "nothing here", 1,
      "a routine missing from the table is the failure a rename or an addition causes"),
-    ([], set(), "| [Ghost](routines/ghost.yaml) | x |", 1,
+    ([], {}, "| [Ghost](routines/ghost.yaml) | x |", 1,
      "a row linking a file that does not exist is the failure a removal causes"),
-    (["routines/a.yaml"], {"A"}, "| [Different](routines/a.yaml) | x |", 1,
-     "matching is by exact name, so a row naming it differently is wrong"),
+    ([_A], {"A": _A}, "| [Different](routines/a.yaml) | x |", 1,
+     "matching is by exact name, so a row naming it after nothing is wrong"),
+    ([_A, _B], _NAMES,
+     "| [B](routines/a.yaml) | x |\n| [A](routines/b.yaml) | x |", 2,
+     "two rows with their labels swapped: every name and file exists, and every row is wrong"),
+    ([_A, _B], _NAMES,
+     "| [A](routines/a.yaml) | x |\n| [B](routines/b.yaml) | x |", 0,
+     "the same two rows, correctly paired, must stay clean"),
 ]
 
 
 def _readme_errors(paths, names, text):
     import validate_routines as v
-    from pathlib import Path
 
     real = v.Path
     class _Stub:
