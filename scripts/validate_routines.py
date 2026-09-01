@@ -118,7 +118,14 @@ PROMPT_NARRATION_RE = re.compile(
 
 
 def check_prompt_is_instructional(path, prompt, errors):
-    """Reject historical narration in a prompt; see PROMPT_* above for the reasoning."""
+    """Reject text in a prompt that records history rather than instructing.
+
+    Three shapes, checked separately and reported separately: a date, an issue or pull
+    request reference, and narration asserting that a rule is true. "Narration" is the
+    name of one of the three rather than the whole, which is why it is not the summary
+    here. See the PROMPT_* patterns above for why each is rejected and where the content
+    belongs instead.
+    """
     for label, regex, why in (
         ("a date", PROMPT_DATE_RE, "a dated claim goes stale and the routine cannot tell"),
         ("an issue or PR reference", PROMPT_ISSUE_RE, "closed history the routine could read for itself"),
