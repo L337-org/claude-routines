@@ -66,6 +66,11 @@ API can't anyway — disable it instead.
 3. Update the summary table in `README.md`.
 4. Open a PR; CI runs `scripts/validate_routines.py`. Merge, then apply it to the live account by
    hand (see "Applying changes to the live account" above).
+5. **The pull request into `main` enumerates the apply steps**, one line each, because applying is
+   manual and the person doing it may not be the person who wrote the change. Say which routines are
+   created, which are updated, which must be **disabled** as orphans, and any connector that has to
+   be attached first. A change that merges without that list leaves the live account silently behind
+   the repository, and nothing detects that gap - no routine can reach the routines API to notice.
 
 ## Review checklist for a PR touching `routines/*.yaml`
 
