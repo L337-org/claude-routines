@@ -80,14 +80,11 @@ API can't anyway — disable it instead.
   repo.
 - The `prompt` reads as an instruction rather than a changelog: no dates, no issue or pull
   request references, no narration asserting a rule is true, and no snapshot of what was
-  true when it was written. `scripts/validate_routines.py` fails CI on all four, but flag
-  prose that passes the check and still records history rather than instructing. Anything a
-  human needs belongs in `note:`.
-- The `prompt` states no fact the routine could read for itself. A count, a file list, a
-  version, a branch trigger, which channel is paused: name the file or command that answers
-  it instead. `scripts/validate_routines.py` catches only the phrases that announce a
-  snapshot ("at the time of writing", "at present"), so one written as plain prose reaches
-  CI clean and only a reviewer will see it. `schema/routine.md` carries the reasoning.
+  true when it was written (a count, a file list, a version, which channel is paused).
+  `scripts/validate_routines.py` fails CI on all four, but flag prose that passes the check
+  and still records history rather than instructing. Anything a human needs belongs in
+  `note:` - except a snapshot, which is deleted in favour of naming the file or command that
+  answers it.
 - The `prompt` does not restate what an existing test already asserts. Where CI gates something
   on every pull request, a routine re-checking it monthly finds only what has already failed.
   `scripts/validate_routines.py` cannot see this; a reviewer can.

@@ -77,18 +77,15 @@ The reasoning still has to live somewhere. `note:` takes anything a human readin
 needs; the commit message and the decision record take the rest. Slack channel names are
 unaffected, because the issue rule requires digits after the hash.
 
-A snapshot is the one shape `note:` does not fix, so it gets a different remedy and the
-validator says so. A note goes stale on the same schedule as the prompt did; it has only
-stopped being paid for on every run. Point at the artefact that holds the state instead -
-the file, the section, the command - so that a difference found there is a real finding
-rather than this repository disagreeing with reality. Two of these were worse than merely
-stale: the audit routine's record of what its own grep found, and the drift routine's list
-of where a figure appears, are both invalidated by the routine succeeding at its job.
+A snapshot is the one shape `note:` does not fix, so the validator gives it a different
+remedy: name the artefact that holds the state - the file, the section, the command - so
+that a difference found there is a real finding rather than this repository disagreeing
+with reality. A note would go stale on the same schedule; it has only stopped being paid
+for on every run.
 
 Only the phrases that announce a snapshot are matched, because a bare count cannot be told
-apart from a threshold and thresholds are instructions that must keep working. A snapshot
-written as plain prose passes CI, which is why `AGENTS.md`'s reviewer checklist carries the
-same rule for a human to apply.
+apart from a threshold and thresholds are instructions that must keep working. One written
+as plain prose passes CI, so the reviewer checklist in `AGENTS.md` carries the rule too.
 
 ## GitHub access is not a connector
 
