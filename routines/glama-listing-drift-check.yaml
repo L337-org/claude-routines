@@ -16,18 +16,15 @@ note: >-
   reported rather than treated as no drift, and why the allowlist entry above matters.
 network_allowlist: [glama.ai]
 prompt: |-
-  Check the docker-mcp MCP server's third-party Glama listing for unexpected drift, then judge — don't just mechanically diff — whether it matters.
+  Check the three letter grades on docker-mcp's third-party Glama listing, and report only an exact change.
 
-  1. Fetch https://glama.ai/api/mcp/v1/servers/L337-org/docker-mcp for the live listing.
-  2. Read ground truth fresh from the checked-out repo (L337-org/docker-mcp): the canonical env vars via `read_env`/`env_flag` usage in the tools modules, the registered tool count (search `TOOL_CATEGORIES` in `docker_mcp/server.py`), the license (MIT), the repo URL, and the namespace/slug (L337-org / docker-mcp).
-  3. Compare. Glama's crawler lags behind releases, so:
-     - An empty `tools` array, or a tool count within ~30% of the repo's actual count, is expected lag — not drift.
-     - A license, repo URL, or namespace/slug mismatch IS real drift.
-  4. Also fetch https://glama.ai/mcp/servers/L337-org/docker-mcp (the human-facing page, not the API) and read the three letter grades: License, Quality, Maintenance. Compare against the baseline **License A / Quality A / Maintenance A**. Any letter change from this baseline is real drift — these are Glama's own opaque scores with no repo-derivable ground truth, so judgment doesn't apply here, only equality.
-  5. This routine is read-only: never commit, never open a PR or issue.
-  6. **SPEAK UP WHEN YOU CANNOT WORK, OR WHEN SOMETHING IS UNEXPECTED.** Silence from you is read as "I looked and found nothing", so it must never also mean either of these. Post to Slack when either applies:
+  1. Fetch https://glama.ai/mcp/servers/L337-org/docker-mcp — the human-facing page, not the API — and read the three letter grades: License, Quality, Maintenance.
+  2. Compare against the baseline **License A / Quality A / Maintenance A**. This is an equality test and nothing else: any letter differing from the baseline is drift, any letter matching it is not. These are Glama's own opaque scores with no ground truth in the repo, so there is nothing to judge and nothing to derive.
+  3. Do NOT use the API at `glama.ai/api/mcp/v1/...`. It requires a key this routine cannot hold, and what it returns is not worth having: the tools array is empty, the quality score is a drifting float rather than the grade, and licence, repository, namespace and slug only change when we change them deliberately.
+  4. This routine is read-only: never commit, never open a PR or issue.
+  5. **SPEAK UP WHEN YOU CANNOT WORK, OR WHEN SOMETHING IS UNEXPECTED.** Silence from you is read as "I looked and found nothing", so it must never also mean either of these. Post to Slack when either applies:
      - **You could not look.** A fetch was blocked or failed — an HTTP 403 carrying `x-deny-reason: host_not_allowed` means the domain is missing from this environment's allowlist — or the repo would not clone, or a tool was missing, or you hit a limit. Name the host or step and what it stopped you checking. This routine has already lost weeks to exactly that failure going unreported: do not let it happen again.
      - **An unanticipated case that changed what you could conclude.** Report it ONLY where something this prompt did not anticipate stopped a check completing, or left you unsure whether a result is right. Name the check and say what is now unknown. If you noticed something odd, worked around it and finished cleanly, that is NOT reportable: record it in your run output and stay silent.
-  7. Post to Slack #docker-mcp (channel id C0BAP2FTQ6N) only if you found real drift (grade change, or a genuine metadata mismatch) — saying what changed and why it isn't just crawler lag — or if rule 6 applies. Stay silent on a clean week where nothing stopped a check completing.
+  6. Post to Slack #docker-mcp (channel id C0BAP2FTQ6N) only if a letter differs from the baseline, naming which grade moved and in which direction, or if rule 5 applies. Stay silent on a clean week where nothing stopped a check completing.
 
   If a grade baseline changes, note in your Slack message that the baseline hardcoded in this prompt is now stale and needs a human to update this routine's prompt with the new value — you cannot update your own configuration.
