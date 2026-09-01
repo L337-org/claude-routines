@@ -17,6 +17,8 @@ Checks, per file:
     owning routine/connector/environment by name instead. A cross-routine
     reference inside `prompt` must use the `{{routine: <name>}}` placeholder
     form, never a raw id.
+  - every routine file appears in README.md's summary table under its exact
+    `name`, and the table links nothing that does not exist
   - a prompt reads as an instruction rather than a changelog: no dates, no
     issue or pull request references, no narration asserting that a rule is
     true. All three are paid for on every run and none changes what the
@@ -36,6 +38,7 @@ fails any check.
 import glob
 import re
 import sys
+from pathlib import Path
 
 import yaml
 
@@ -253,6 +256,33 @@ def check_file(path, text, data, errors):
         errors.append(f"{path}: contains a raw {m.group(1)}_ id ({m.group(0)}) - reference by name instead")
 
 
+def check_readme_table(paths, names_seen, errors):
+    """Every routine file appears in README.md's summary table, and vice versa.
+
+    Twice in one working week a routine's description outlived the routine: a row still
+    advertised a check that had been removed, and another named a scope the routine no longer
+    had. The table cannot be checked for accuracy mechanically, but it can be checked for
+    completeness, which is what silently goes wrong when a routine is added, removed or renamed.
+    """
+    readme = Path("README.md")
+    if not readme.exists():
+        errors.append("README.md is missing, so its routine table cannot be checked")
+        return
+    text = readme.read_text(encoding="utf-8")
+    linked = dict(re.findall(r"\| \[([^\]]+)\]\(routines/([a-z0-9-]+\.yaml)\)", text))
+    filenames = {p.split("/")[-1] for p in paths}
+    for name, filename in linked.items():
+        if filename not in filenames:
+            errors.append(f"README.md's table links routines/{filename}, which does not exist")
+        elif name not in names_seen:
+            errors.append(
+                f"README.md's table calls routines/{filename} {name!r}, but the file's `name` "
+                f"is different - matching between this repo and the live account is by exact name"
+            )
+    for filename in sorted(filenames - set(linked.values())):
+        errors.append(f"routines/{filename} is missing from README.md's summary table")
+
+
 def main():
     paths = sorted(glob.glob("routines/*.yaml"))
     if not paths:
@@ -288,6 +318,8 @@ def main():
                 continue  # generic doc token, e.g. explaining the placeholder syntax itself
             if referenced_name not in names_seen:
                 errors.append(f"{path}: {ref} does not match any routine name in this repo")
+
+    check_readme_table(paths, names_seen, errors)
 
     if errors:
         print(f"{len(errors)} validation error(s):", file=sys.stderr)

@@ -46,7 +46,7 @@ routine's actual functional behaviour (which channel it posts to), not an artefa
 | Name | Schedule (UTC) | Enabled | Repositories | Purpose |
 |---|---|---|---|---|
 | [MCP surface standard audit](routines/mcp-surface-standard-audit.yaml) | Monthly, 8th 09:00 | ✅ | docker-mcp, send-to-influx | Checks the tool-surface guard tests in both repos still assert what they claim, and reviews recently-changed docstring prose in docker-mcp. |
-| [MCP Registry marker drift](routines/mcp-registry-marker-drift.yaml) | Weekly, Wed 08:30 | ✅ | docker-mcp | Checks docker-mcp's MCP Registry ownership markers and listing haven't drifted from `server.json`. |
+| [MCP Registry marker drift](routines/mcp-registry-marker-drift.yaml) | Weekly, Wed 08:30 | ✅ | docker-mcp | Checks the published `.mcpb` checksum and the live MCP Registry listing. The in-repo markers are asserted by docker-mcp's own tests. |
 | [APT channel serving check](routines/apt-channel-serving-check.yaml) | Daily 07:40 | ✅ | apt, send-to-influx | Confirms the apt.l337.org APT channel actually serves an installable package, from the outside. |
 | [Blocked-on-upstream re-evaluation](routines/blocked-on-upstream-re-evaluation.yaml) | Monthly, 1st 09:00 | ✅ | send-to-influx, docker-mcp, homebrew-tap | Re-tests recorded upstream blockers (e.g. the Homebrew dylib issue) to see if any have cleared. |
 | [Weekly standards reminder (org)](routines/weekly-standards-reminder-org.yaml) | Weekly, Fri 08:15 | ✅ | docker-mcp, send-to-influx, apt, .github, homebrew-tap | Org-wide sweep for policy drift (action pins, lockfiles, instruction files, CI coverage, `.github` content). |

@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from validate_routines import (  # noqa: E402
     check_file,
+    check_readme_table,
     check_prompt_is_instructional,
     opens_pull_requests,
 )
@@ -64,12 +65,20 @@ def main():
                 f"    autofix={autofix!r} prompt={prompt!r}"
             )
 
-    total = len(CASES) + len(AUTOFIX_CASES) + len(INSTRUCTIONAL_CASES)
+    total = len(CASES) + len(AUTOFIX_CASES) + len(INSTRUCTIONAL_CASES) + len(README_CASES)
     for prompt, expected, why in INSTRUCTIONAL_CASES:
         got = len(_instructional_errors(prompt))
         if got != expected:
             failures.append(
                 f"check_prompt_is_instructional({prompt!r}) gave {got} error(s), "
+                f"expected {expected} - {why}"
+            )
+
+    for paths, names, text, expected, why in README_CASES:
+        got = len(_readme_errors(paths, names, text))
+        if got != expected:
+            failures.append(
+                f"check_readme_table({paths}, {text!r}) gave {got} error(s), "
                 f"expected {expected} - {why}"
             )
 
@@ -80,8 +89,9 @@ def main():
         return 1
 
     print(
-        f"OK: {len(CASES)} opens_pull_requests, {len(AUTOFIX_CASES)} autofix and "
-        f"{len(INSTRUCTIONAL_CASES)} instructional-prompt case(s) passed"
+        f"OK: {len(CASES)} opens_pull_requests, {len(AUTOFIX_CASES)} autofix, "
+        f"{len(INSTRUCTIONAL_CASES)} instructional-prompt and {len(README_CASES)} "
+        f"readme-table case(s) passed"
     )
     return 0
 
@@ -140,6 +150,37 @@ def _instructional_errors(prompt):
     errors = []
     check_prompt_is_instructional("routines/example.yaml", prompt, errors)
     return errors
+
+
+# (files, names, README text, expected error count, what the case is for)
+README_CASES = [
+    (["routines/a.yaml"], {"A"}, "| [A](routines/a.yaml) | x |", 0,
+     "a file listed under its exact name is the clean case"),
+    (["routines/a.yaml"], {"A"}, "nothing here", 1,
+     "a routine missing from the table is the failure a rename or an addition causes"),
+    ([], set(), "| [Ghost](routines/ghost.yaml) | x |", 1,
+     "a row linking a file that does not exist is the failure a removal causes"),
+    (["routines/a.yaml"], {"A"}, "| [Different](routines/a.yaml) | x |", 1,
+     "matching is by exact name, so a row naming it differently is wrong"),
+]
+
+
+def _readme_errors(paths, names, text):
+    import validate_routines as v
+    from pathlib import Path
+
+    real = v.Path
+    class _Stub:
+        def __init__(self, *_): pass
+        def exists(self): return True
+        def read_text(self, **_): return text
+    v.Path = _Stub
+    try:
+        errors = []
+        check_readme_table(paths, names, errors)
+        return errors
+    finally:
+        v.Path = real
 
 
 if __name__ == "__main__":
