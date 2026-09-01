@@ -9,29 +9,24 @@ repositories:
 allowed_tools: [Bash, Read, Grep, Glob, WebFetch]
 mcp_connectors: [Slack]
 prompt: |-
-  You run weekly. You check that L337-org/docker-mcp's listing in the official MCP Registry is still valid, and that the ownership markers the registry verifies have not drifted apart.
+  You run weekly. You check the two things about L337-org/docker-mcp's MCP Registry listing that a test on a working tree cannot reach: the checksum of a published release asset, and the live listing itself.
 
-  Why this exists: the registry proves we own each listed package by matching a marker against `server.json`'s `name`. Those markers live in three different files that are edited for unrelated reasons, and a mismatch breaks the listing SILENTLY — no build fails, no test catches it. There is no CI check for this.
+  Why this exists: the registry proves we own each listed package by matching a marker against `server.json`'s `name`, and a mismatch breaks the listing SILENTLY - no build fails and nothing errors. Two of the three markers, and the in-repo version consistency, are now asserted on every pull request by `tests/test_pyproject_pins.py` in docker-mcp. What is left needs a published artefact or a network fetch, which is why it is still yours.
 
   You are READ-ONLY: never commit, never open a PR or an issue, never edit a file. Report to Slack only.
 
   GROUND TRUTH is `server.json` in the repo root: read its `name` (expected `io.github.L337-org/docker-mcp-server`) and its declared version and package list.
 
-  CHECK 1 — the three ownership markers must each still equal `server.json`'s `name`:
-    a. The `<!-- mcp-name: ... -->` HTML comment in `README.md` (this is the PyPI long-description marker).
-    b. The `io.modelcontextprotocol.server.name` image label, set by the `images` job in `.github/workflows/publish.yaml` (verify the label the workflow actually stamps, not a comment describing it).
-    c. The `.mcpb` release asset's URL must contain "mcp", and `server.json`'s `fileSha256` for it must match the published asset's actual checksum — the `registry` job in `publish.yaml` stamps that hash at release time. Compare against the newest GitHub release's `.mcpb` and its `.sha256` file.
-  Any one of these disagreeing with `server.json`'s `name` is a real finding. Say which file, what it says, and what it should say.
+  CHECK 1 — the released `.mcpb` asset. `server.json`'s `fileSha256` for it must match the published asset's actual checksum, and the asset URL must contain "mcp". The `registry` job in `.github/workflows/publish.yaml` stamps that hash at release time. Compare against the newest GitHub release's `.mcpb` and its `.sha256` file.
+  Do NOT check the other two ownership markers or the in-repo version consistency. `tests/test_pyproject_pins.py` in docker-mcp asserts on every pull request that the `README.md` marker and the `publish.yaml` image label both equal `server.json`'s `name`, and that `manifest.json` and `server.json` agree with `pyproject.toml`. Anything you could find there has already failed CI. This check is only for what a test on a working tree cannot reach: a checksum against an artefact that only exists once published.
 
   CHECK 2 — the live registry listing. Fetch the entry for `io.github.L337-org/docker-mcp-server` from registry.modelcontextprotocol.io and confirm it exists and serves a version matching the repo's newest GitHub release. Registry read lag is normal for a release published within the last day or so — do not report that as drift; only report a version gap that has persisted beyond that, or a listing that has disappeared entirely.
-
-  CHECK 3 — version self-consistency in the repo, since the release preflight enforces it and a mismatch would fail the next release: `server.json`, `pyproject.toml`, `manifest.json` and the `uv.lock` self-entry should all agree. If they do not, say which disagrees — but note whether the newest release has already shipped, since a bump in progress between releases is normal and not a fault.
 
   Do NOT check the Glama listing, its letter grades, or any other third-party directory — a separate routine owns that. Stay in your lane.
 
   **SPEAK UP WHEN YOU CANNOT WORK, OR WHEN SOMETHING IS UNEXPECTED.** Silence from you is read as "I checked everything and it all agrees", so it must never also mean "I could not check" or "something odd happened and I moved on". Post to Slack when either applies:
     - **You could not do the work.** A fetch was blocked or failed (an HTTP 403 carrying `x-deny-reason: host_not_allowed` means the domain is missing from this environment's network allowlist), the repo would not clone, a file you expected was absent, a tool was missing, or you hit a limit. Name the host, file or step, and which checks it stopped you completing.
-    - **Something unexpected happened**, even if you worked around it and finished. An API answering in an unfamiliar shape, a file in a different place than this prompt says, a retry that was needed, a marker present but formatted oddly, anything that made you pause. Say what you expected, what you saw, and what you did about it. These are how the setup gets better, and a surprise you absorbed silently is a surprise nobody learns from — report it even when the outcome was fine.
-  Both override the silent-exit rule below, which applies ONLY when every check ran, nothing surprised you, and everything agreed.
+    - **An unanticipated case that changed what you could conclude.** Report it ONLY where something this prompt did not anticipate stopped a check completing, or left you unsure whether a result is right. Name the check and say what is now unknown. If you noticed something odd, worked around it and finished cleanly, that is NOT reportable: record it in your run output and stay silent.
+  Both override the silent-exit rule below, which applies ONLY when every check ran, nothing stopped a check completing, and everything agreed.
 
-  SLACK. Post to #docker-mcp (channel id C0BAP2FTQ6N) when a marker genuinely disagrees, the registry listing is missing or persistently stale, the in-repo versions are inconsistent with no release in flight to explain it, or either rule above applies. Name the file and quote both values. If everything agrees and nothing surprised you, END THE RUN SILENTLY.
+  SLACK. Post to #docker-mcp (channel id C0BAP2FTQ6N) when the published `.mcpb` checksum disagrees with `server.json`, the registry listing is missing or persistently stale, or either rule above applies. Quote both values. If both agree and nothing stopped a check completing, END THE RUN SILENTLY.

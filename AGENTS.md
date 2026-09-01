@@ -66,6 +66,11 @@ API can't anyway — disable it instead.
 3. Update the summary table in `README.md`.
 4. Open a PR; CI runs `scripts/validate_routines.py`. Merge, then apply it to the live account by
    hand (see "Applying changes to the live account" above).
+5. **The pull request into `main` enumerates the apply steps**, one line each, because applying is
+   manual and the person doing it may not be the person who wrote the change. Say which routines are
+   created, which are updated, which must be **disabled** as orphans, and any connector that has to
+   be attached first. A change that merges without that list leaves the live account silently behind
+   the repository, and nothing detects that gap - no routine can reach the routines API to notice.
 
 ## Review checklist for a PR touching `routines/*.yaml`
 
@@ -73,6 +78,13 @@ API can't anyway — disable it instead.
   `scripts/validate_routines.py` should already have failed CI if so, but flag it if seen.
 - A cross-routine reference uses `{{routine: <exact name>}}`, and that name exists somewhere in this
   repo.
+- The `prompt` reads as an instruction rather than a changelog: no dates, no issue or pull
+  request references, no narration asserting a rule is true. `scripts/validate_routines.py`
+  fails CI on all three, but flag prose that passes the check and still records history
+  rather than instructing. Anything a human needs belongs in `note:`.
+- The `prompt` does not restate what an existing test already asserts. Where CI gates something
+  on every pull request, a routine re-checking it monthly finds only what has already failed.
+  `scripts/validate_routines.py` cannot see this; a reviewer can.
 - `README.md`'s summary table reflects the change.
 - Renaming a routine's `name` is delete+create, not a rename, on the live side — whoever next
   applies this repo by hand should disable the old name as an orphan, which is expected but worth

@@ -13,11 +13,11 @@ the exact rules.
 | `environment` | yes | string | The environment's **name** (e.g. `Default`), never its `environment_id`. See "Why no raw ids" below. |
 | `repositories` | yes | list of URLs | `https://github.com/...` sources the routine's session is given. |
 | `allowed_tools` | yes | list of strings | Tool names the routine's session may use. |
-| `mcp_connectors` | no | list of strings | MCP connector **names** (e.g. `Slack`) attached via <https://claude.ai/customize/connectors>, never `connector_uuid`. **Never list `GitHub` here** - see "GitHub access is not a connector" below. |
+| `mcp_connectors` | no | list of strings | MCP connector **names**, spelled exactly as the platform does: `Slack`, and `Atlassian-Rovo` with a hyphen rather than an underscore. Attached via <https://claude.ai/customize/connectors>, and never `connector_uuid`. **Never list `GitHub` here** - see "GitHub access is not a connector" below. |
 | `network_allowlist` | no | list of hostnames | Domains this routine's cloud environment needs on its outbound allowlist to do its job (bare hostnames, no scheme/path). Best-effort - populated from domains a routine's own prompt explicitly names as required, not an exhaustive audit of every fetch target. Extend it when a routine reports a blocked domain it needs. **Not part of the live routine config** (like `note`): the allowlist belongs to the shared *environment*, so this field records what that environment must permit for the routine to work, and `RemoteTrigger` never returns it. Absence from live config is expected, not drift. Declare a host only where the prompt actually instructs a fetch of it - a host merely mentioned in passing does not belong here. |
 | `autofix_on_pr_create` | only if the routine opens PRs | boolean | Must be `true` on any routine whose prompt instructs opening a pull request, and absent on every other routine. Validation enforces both. See "Why autofix_on_pr_create must be true, explicitly" below. |
-| `note` | no | string | Context for a human reading this file. Not part of the live routine config. |
-| `prompt` | yes | string (block literal) | The routine's full instructions, verbatim, except for cross-routine references (see below). |
+| `note` | no | string | Context for a human reading this file. Not part of the live routine config, and exempt from the prompt-content rule below - so it is where a date, an incident or an issue reference goes when a human needs it and the routine does not. |
+| `prompt` | yes | string (block literal) | The routine's full instructions, verbatim, except for cross-routine references (see below). Must read as an instruction, not a changelog: see "Why a prompt carries no history" below. |
 
 ## Why `autofix_on_pr_create` must be true, explicitly
 
@@ -53,6 +53,27 @@ guard there is.
 suppressed reviewer finding on #193. Every PR-opening prompt therefore carries its own
 read-the-review-body block, which validation also enforces.
 
+## Why a prompt carries no history
+
+Validation rejects three things in a `prompt`, and they are the same mistake in three
+shapes: text that records why a rule exists rather than telling the routine what to do.
+
+* **A date.** A dated confirmation is a state claim with a shelf life, and the routine
+  cannot tell when it has expired.
+* **An issue or pull request reference.** Closed history the routine could read for itself
+  if it needed to, which it does not.
+* **Narration asserting the rule is true** - "not a theory", "it has leaked this way
+  before", "that is not hypothetical".
+
+Every one of them is sent to the model on every run and none of them changes what the
+routine does. The prompts had accumulated enough of it to be a measurable share of their
+length, and the restated repository state in particular is what produced a run of commits
+correcting claims that had quietly gone stale.
+
+The reasoning still has to live somewhere. `note:` takes anything a human reading the file
+needs; the commit message and the decision record take the rest. Slack channel names are
+unaffected, because the issue rule requires digits after the hash.
+
 ## GitHub access is not a connector
 
 A routine's GitHub tool access (`mcp__github__*` - reading/creating issues, PRs, releases,
@@ -69,12 +90,25 @@ attach step that doesn't exist - the applier would go looking for a GitHub conne
 none. A routine's GitHub access follows from its `repositories:` entry alone and needs no
 declaration here.
 
+## The connector uuid comes from the interface, not from a name
+
+`mcp_connections` requires a `connector_uuid`; the API will not resolve a connector by name. An
+update passing only `{"name": "Atlassian-Rovo"}` is rejected with
+`mcp_connections.<n>.connector_uuid: Field required`, where `<n>` is that entry's position in the
+list. The rejection is atomic, so nothing is changed.
+
+A connector being connected at account level does not make it addressable. Its uuid has to come out
+of the platform once: add it to a routine through the web interface, read the uuid back with
+`RemoteTrigger action: "get"`, and reuse that value for every subsequent apply. Do that on a routine
+that opens no pull requests, because the interface writes `autofix_on_pr_create: false` into
+whatever it touches and the field cannot afterwards be cleared through the API.
+
 ## Two API behaviours to know when applying a file by hand
 
 Both found by testing on 2026-08-14, and both bite in the unsafe direction.
 
 **Omitting `mcp_connections` on create attaches EVERY connector on the account, not none.** A create
-call that left the field out came back with `Gmail`, `Atlassian_Rovo`, `Claude_Code_Remote` and
+call that left the field out came back with `Gmail`, `Atlassian-Rovo`, `Claude_Code_Remote` and
 `Slack` all attached - so a read-only diagnostic routine was silently given mail access. The default
 is maximal, not minimal, and nothing warns. **Always pass the file's `mcp_connectors` explicitly when
 applying**, even when it is a single entry, and re-read the response to confirm what actually got
