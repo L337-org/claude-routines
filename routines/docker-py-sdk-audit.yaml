@@ -40,11 +40,11 @@ prompt: |-
 
   Deliberately ignore `compose.py`, `buildx.py`, `scout.py`, `context.py` and `stack.py`: CLI-only features, never part of the Engine API, out of scope.
 
-  **Audit the latest PUBLISHED docker-py, not just the pinned one.** `uv.lock` routinely trails what `pyproject.toml`'s floor lets a fresh `uvx`/`pip install` resolve, so the installed tree is not what published users are running - auditing it alone is how 7.2.0 went unnoticed for a month. Find the latest PyPI release, compare it to the locked version, and if they differ: audit the latest release's surface AND report the drift itself, including any behavioural change in its release notes touching this server (host/context resolution, auth, streaming, default API version).
+  **Audit the latest PUBLISHED docker-py, not just the pinned one.** `uv.lock` routinely trails what `pyproject.toml`'s floor lets a fresh `uvx`/`pip install` resolve, so the installed tree is not what published users are running. Find the latest PyPI release, compare it to the locked version, and if they differ: audit the latest release's surface AND report the drift itself, including any behavioural change in its release notes touching this server (host/context resolution, auth, streaming, default API version).
 
   ## 2. Verify against the source, in this order
 
-  A method can be documented, importable and still non-functional - that is how a nine-year-old wrong-URL bug in `push_plugin` survived, and readthedocs renders only docstrings so it could never have shown it.
+  A method can be documented, importable and still non-functional, and readthedocs renders only docstrings, so it can never show you that.
 
   1. The **actual source of the version you are auditing** is primary: read it on GitHub (`docker/docker-py` at that release tag) or from the installed/downloaded package. This is where you confirm what a method really does - the URL it builds, the parameters it forwards.
   2. The **Engine API spec** (`moby/moby`'s `api/swagger.yaml`) for whether a route genuinely exists.
@@ -56,7 +56,7 @@ prompt: |-
 
   This is the most important rule here, and it matters more now that one routine both finds and fixes. `architecture/docker-sdk.md` defines a fallback ladder for when the public SDK path does not work: (1) another public SDK path, (2) the correct endpoint through docker-py's private request helpers, (3) a CLI shell-out.
 
-  **Only rung (1) is yours.** Rungs (2) and (3) leave the supported surface and are explicitly not an agent's call to make. If a candidate needs one, STOP: do not implement it. Write up what you found, why the public path fails, and which rung would be needed, and escalate it to Slack for a human decision. Documenting and escalating is the correct outcome, not a failure to finish - this is exactly how `plugin_push` was settled, and a routine that had "helpfully" hand-rolled the call instead would have made a trust decision nobody asked it to make.
+  **Only rung (1) is yours.** Rungs (2) and (3) leave the supported surface and are explicitly not an agent's call to make. If a candidate needs one, STOP: do not implement it. Write up what you found, why the public path fails, and which rung would be needed, and escalate it to Slack for a human decision. Documenting and escalating is the correct outcome, not a failure to finish: hand-rolling the call instead would make a trust decision nobody asked you to make.
 
   Implement the rung-(1) candidates and escalate the rest in the same run; a PR containing the safe half plus a Slack note about the other half is a good outcome.
 
