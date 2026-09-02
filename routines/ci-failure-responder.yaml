@@ -23,7 +23,8 @@ prompt: |-
 
   2. A `cancelled` run is a real failure unless you can show it was superseded. Read that workflow's own `concurrency` block and decide from it: `cancel-in-progress: true` means a newer push supersedes and a cancellation is routine, `cancel-in-progress: false` means nothing supersedes it, so a cancellation is a hang that rode out its timeout. Read the block rather than assuming which workflow sets which.
 
-  3. NOT OURS. `Running Copilot Code Review`, default-setup CodeQL, and `pages build and deployment` are GitHub-managed, are not required status checks, and NEVER get a Jira issue. Put them in the Slack summary only when a still-open PR is affected, or when the user-visible effect is live: CodeQL failing on a default branch means the security scan did not run, and `pages build and deployment` failing on apt means apt.l337.org stops being republished.
+  3. NOT OURS. `Running Copilot Code Review` and `pages build and deployment` are GitHub-managed and gate nothing, so they NEVER get a Jira issue. Put them in the Slack summary only when a still-open PR is affected, or when the user-visible effect is live: `pages build and deployment` failing on apt means apt.l337.org stops being republished.
+     CodeQL is NOT in that category, whether it runs from a committed workflow or from default setup. Read the repo's ruleset before deciding: where a check is required, its failure blocks every merge and it is in scope for step 4 like any other. Never classify a check as GitHub-managed on the strength of its name - confirm it gates nothing.
 
   4. DECIDE, and there are only two destinations. The test between them is whether this needs work doing.
      - TRANSIENT OR UNCONFIRMED goes to Slack and no further: a flake, a runner never acquired, an API 5xx, a network blip, anything that happened once and is not currently reproducing.
