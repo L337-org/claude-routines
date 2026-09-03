@@ -88,6 +88,12 @@ API can't anyway — disable it instead.
 - The `prompt` does not restate what an existing test already asserts. Where CI gates something
   on every pull request, a routine re-checking it monthly finds only what has already failed.
   `scripts/validate_routines.py` cannot see this; a reviewer can.
+- The `prompt` sends each finding it acts on to exactly one destination. Where a routine both files
+  a tracker issue and opens a fix pull request, check that no single finding can reach both: that
+  has the routine working a backlog item nobody has prioritised, and leaves the issue reading as
+  outstanding once the fix merges. `scripts/validate_routines.py` cannot see this either — all it
+  could tell lexically is that both destinations appear, which is correct for a routine that fixes
+  some findings and files the remainder.
 - `README.md`'s summary table reflects the change.
 - Renaming a routine's `name` is delete+create, not a rename, on the live side — whoever next
   applies this repo by hand should disable the old name as an orphan, which is expected but worth
