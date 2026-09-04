@@ -99,6 +99,23 @@ API can't anyway — disable it instead.
   applies this repo by hand should disable the old name as an orphan, which is expected but worth
   calling out in the PR description.
 
+## Python style
+
+`scripts/*.py` is linted and formatted by `ruff` and type-checked by `mypy`, all three required
+on every pull request. Configuration is in `ruff.toml`; the versions are pinned in
+`requirements-dev.txt` rather than named in the workflow, so what you run locally is what CI
+runs.
+
+**Docstrings are Google style** - `Args:` and `Returns:` sections, capitalised. That is the
+organisation's format for Python, and `ruff`'s pydocstyle rules enforce it here rather than
+review having to. `scripts/check-repo-hygiene.py` is excluded from those rules: it is vendored
+byte-identically into four repositories and its docstring format is settled by the repository
+that owns it, not by this one.
+
+**`routines/*.yaml` are exempt from the ASCII punctuation convention.** They are prompt text
+sent to a model rather than prose this project publishes, and rewriting punctuation inside a
+prompt risks changing what it asks for. Recorded here so an audit does not raise it again.
+
 <!-- BEGIN GENERATED -->
 ## Read these when they apply
 

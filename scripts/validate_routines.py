@@ -39,6 +39,7 @@ Across all files:
 Exits non-zero (and prints every failure, not just the first) if any file
 fails any check.
 """
+
 import glob
 import re
 import sys
@@ -75,6 +76,15 @@ PLACEHOLDER_RE = re.compile(r"\{\{routine:\s*[^}]+\}\}")
 
 
 def slugify(name):
+    """Reduce a routine's name to the slug its filename must use.
+
+    Args:
+        name: the routine's human-readable name.
+
+    Returns:
+        The slug: lowercase, punctuation dropped, whitespace and underscores collapsed to
+        single hyphens, with no leading or trailing hyphen.
+    """
     s = name.lower()
     s = re.sub(r"[^\w\s-]", "", s)
     s = re.sub(r"[\s_]+", "-", s).strip("-")
@@ -96,9 +106,7 @@ PR_OPENING_RE = re.compile(_OPEN_PR, re.IGNORECASE)
 # negative here silently exempts a routine from the requirement below, which is the one
 # failure this check exists to prevent.
 _NEGATORS = r"never|not|no|cannot|can[\u2019']t|don[\u2019']t|does\s+not|must\s+not|avoid|without"
-NEGATED_OPEN_PR_RE = re.compile(
-    rf"\b(?:{_NEGATORS})\b(?:\s+\w+){{0,2}}\s+{_OPEN_PR}", re.IGNORECASE
-)
+NEGATED_OPEN_PR_RE = re.compile(rf"\b(?:{_NEGATORS})\b(?:\s+\w+){{0,2}}\s+{_OPEN_PR}", re.IGNORECASE)
 REVIEW_BODY_MARKERS = ("READ THE REVIEW BODY, NOT ONLY THE THREADS", "get_reviews")
 
 # A prompt is an instruction to a model, not a changelog. Four kinds of text fail that
@@ -150,13 +158,16 @@ def check_prompt_is_instructional(path, prompt, errors):
     # The remedy differs by shape, so each carries its own rather than sharing one. Moving a
     # snapshot to `note:` would not fix it: a note goes stale on exactly the same schedule,
     # it just stops being paid for on every run.
-    to_note = (
-        "move it to `note:` if a human needs it, or to the commit message and the decision record"
-    )
+    to_note = "move it to `note:` if a human needs it, or to the commit message and the decision record"
     for label, regex, why, remedy in (
         ("a date", PROMPT_DATE_RE, "a dated claim goes stale and the routine cannot tell", to_note),
         ("an issue or PR reference", PROMPT_ISSUE_RE, "closed history the routine could read for itself", to_note),
-        ("narration", PROMPT_NARRATION_RE, "evidence that the rule is true, which the routine does not act on", to_note),
+        (
+            "narration",
+            PROMPT_NARRATION_RE,
+            "evidence that the rule is true, which the routine does not act on",
+            to_note,
+        ),
         (
             "a state snapshot",
             PROMPT_SNAPSHOT_RE,
@@ -185,6 +196,19 @@ def opens_pull_requests(prompt):
 
 
 def check_file(path, text, data, errors):
+    """Check one routine file against every rule this validator enforces.
+
+    Appends to `errors` rather than raising, so one run reports every problem across every
+    file instead of stopping at the first - which is what makes the output usable as a
+    to-do list.
+
+    Args:
+        path: the file's path, used in messages so a finding names its file.
+        text: the file's raw contents, for the checks that need the source rather than the
+            parsed shape.
+        data: the parsed YAML.
+        errors: the accumulating list of findings, appended to in place.
+    """
     if not isinstance(data, dict):
         errors.append(f"{path}: top-level content is not a mapping")
         return
@@ -332,6 +356,14 @@ def check_readme_table(paths, names_seen, errors):
 
 
 def main():
+    """Validate every routine file and report what is wrong with all of them.
+
+    Returns:
+        A process exit status: 0 when every file passes, 1 when any check fails or when
+        there are no routine files to check at all. Finding nothing is a failure rather
+        than a pass, because a glob that silently matched nothing would report success
+        while checking nothing.
+    """
     paths = sorted(glob.glob("routines/*.yaml"))
     if not paths:
         print("no routines/*.yaml files found", file=sys.stderr)
@@ -361,7 +393,7 @@ def main():
             text = f.read()
         for m in PLACEHOLDER_RE.finditer(text):
             ref = m.group(0)
-            referenced_name = ref[len("{{routine:"):-2].strip()
+            referenced_name = ref[len("{{routine:") : -2].strip()
             if referenced_name.lower() in ("<name>", "name"):
                 continue  # generic doc token, e.g. explaining the placeholder syntax itself
             if referenced_name not in names_seen:
@@ -371,8 +403,8 @@ def main():
 
     if errors:
         print(f"{len(errors)} validation error(s):", file=sys.stderr)
-        for e in errors:
-            print(f"  - {e}", file=sys.stderr)
+        for error in errors:
+            print(f"  - {error}", file=sys.stderr)
         return 1
 
     print(f"OK: {len(paths)} routine file(s) validated")
