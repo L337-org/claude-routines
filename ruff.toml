@@ -1,0 +1,29 @@
+# Lint and format for this repository's Python. CS.3.1 requires lint, format-check and
+# type-check on every pull request, all required; ruff covers the first two and mypy the third.
+#
+# ruff rather than flake8 plus black because it is one tool for both, it is what docker-mcp
+# already uses in this organisation, and it carries the pydocstyle rules CS.6.12's Google
+# docstring format needs without a fourth dependency.
+line-length = 120
+target-version = "py312"
+
+[lint]
+# E/F pycodestyle and pyflakes, B flake8-bugbear, S flake8-bandit, UP pyupgrade, D pydocstyle.
+select = ["E", "F", "B", "S", "UP", "D"]
+
+[lint.pydocstyle]
+# CS.6.12: for Python the docstring format is Google style, enforced here rather than by review.
+convention = "google"
+
+[lint.per-file-ignores]
+# The test module is a script of assertions run directly rather than under pytest, so S101 is
+# the whole point of it, and each case's name says what it covers better than a docstring would.
+"scripts/test_validate_routines.py" = ["S101", "D103", "D100"]
+
+# The vendored hygiene script is byte-identical in four repositories and its docstring format is
+# settled by docker-mcp's own gate, not by this repository's. It is written in that repository's
+# documented lowercase `args:`/`returns:` house style, which is not Google, so D405 fires on
+# every section. Excluded here rather than converted, because converting it means changing all
+# four copies and the digest they share - work that belongs with the docstring gate that decides
+# the format. Remove this entry when that lands.
+"scripts/check-repo-hygiene.py" = ["D"]

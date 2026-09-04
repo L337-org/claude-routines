@@ -31,16 +31,25 @@ from validate_routines import (  # noqa: E402
 
 # (prompt fragment, opens a PR?, what the case is for)
 CASES = [
-    ("NEVER push to `main`. Open the PR into `main`.", True,
-     "an unrelated negation nearby must not suppress a real match"),
-    ("NEVER merge anything, including your own PR - a human merges. Open the PR into `main`.", True,
-     "nor one further back in the same bullet"),
+    (
+        "NEVER push to `main`. Open the PR into `main`.",
+        True,
+        "an unrelated negation nearby must not suppress a real match",
+    ),
+    (
+        "NEVER merge anything, including your own PR - a human merges. Open the PR into `main`.",
+        True,
+        "nor one further back in the same bullet",
+    ),
     ("If it's something you can safely fix, open a PR:", True, "plain affirmative"),
     ("Open a pull request into `main`.", True, "the long spelling counts too"),
     ("It opens a PR when the fix is safe.", True, "third person"),
     ("You are READ-ONLY: never open a PR or an issue.", False, "explicit prohibition"),
-    ("This routine is read-only: never commit, never open a PR or issue.", False,
-     "prohibition after an unrelated clause"),
+    (
+        "This routine is read-only: never commit, never open a PR or issue.",
+        False,
+        "prohibition after an unrelated clause",
+    ),
     ("Do not open a PR for this.", False, "'do not'"),
     ("Don't open a PR.", False, "'don't'"),
     ("Don’t open a PR.", False, "'don't' with a typographic apostrophe"),
@@ -70,8 +79,7 @@ def main():
         got = len(_instructional_errors(prompt))
         if got != expected:
             failures.append(
-                f"check_prompt_is_instructional({prompt!r}) gave {got} error(s), "
-                f"expected {expected} - {why}"
+                f"check_prompt_is_instructional({prompt!r}) gave {got} error(s), expected {expected} - {why}"
             )
 
     for case in README_CASES:
@@ -79,10 +87,7 @@ def main():
         exists = case[5] if len(case) > 5 else True
         got = len(_readme_errors(paths, names, text, exists))
         if got != expected:
-            failures.append(
-                f"check_readme_table({paths}, {text!r}) gave {got} error(s), "
-                f"expected {expected} - {why}"
-            )
+            failures.append(f"check_readme_table({paths}, {text!r}) gave {got} error(s), expected {expected} - {why}")
 
     if failures:
         print(f"{len(failures)} of {total} case(s) failed:", file=sys.stderr)
@@ -96,7 +101,6 @@ def main():
         f"readme-table case(s) passed"
     )
     return 0
-
 
 
 # A prompt fragment that trips `opens_pull_requests`, and one that does not.
@@ -125,34 +129,72 @@ AUTOFIX_CASES = [
 
 # (prompt fragment, expected error count, what the case is for)
 INSTRUCTIONAL_CASES = [
-    ("Post to Slack #docker-mcp (channel id C0BAP2FTQ6N) when a marker disagrees.", 0,
-     "a Slack channel is not an issue reference: the digits rule is what separates them"),
-    ("Branch `sdk-audit/<YYYY-MM-DD>`, which matches no ruleset.", 0,
-     "a date placeholder in a branch name is a template, not a dated claim"),
-    ("File a `ci-failure` issue ONLY if it has happened more than once.", 0,
-     "an instruction that happens to describe recurrence is not narration"),
-    ("Read the workflow's `concurrency` block before deciding.", 0,
-     "the ordinary instructional case must stay clean"),
-    ("As of 2026-08-10 a human confirmed the only rulesets are per-repo.", 1,
-     "a dated confirmation goes stale and the routine cannot tell"),
-    ("Issues filed by earlier runs carry them: apt#1, #2 and send-to-influx#107.", 3,
-     "each issue reference is closed history the routine could read for itself"),
-    ("Two runs reached opposite conclusions on L337-org/apt#16 for this reason.", 1,
-     "the org-qualified form is what the prompts used, and the first pattern missed it"),
-    ("See https://github.com/L337-org/apt/issues/16 for the detail.", 0,
-     "a bare URL carries no hash-digits, so it is not caught by this rule"),
-    ("That is confirmed observed behaviour on L337-org/apt, not a theory.", 2,
-     "evidence that a rule is true, which the routine does not act on"),
-    ("It has leaked this way before, so none of these checks is optional.", 1,
-     "same shape, and the instruction survives without it"),
-    ("At the time of writing the narrower grep finds 3 sites in 2 modules.", 1,
-     "a snapshot the routine can re-derive, and which its own successful run invalidates"),
-    ("The tap is at present dispatch-only, so a release trigger is the finding.", 1,
-     "same shape in a phrasing that does not name writing"),
-    ("As of now the Projects table lists customer-facing repos only.", 1,
-     "and again, since one phrasing being caught proves nothing about the others"),
-    ("Poll every 2 minutes for about 20 minutes, up to 3 fix cycles, and stop at 1%.", 0,
-     "thresholds are instructions: a bare count must never be read as a snapshot"),
+    (
+        "Post to Slack #docker-mcp (channel id C0BAP2FTQ6N) when a marker disagrees.",
+        0,
+        "a Slack channel is not an issue reference: the digits rule is what separates them",
+    ),
+    (
+        "Branch `sdk-audit/<YYYY-MM-DD>`, which matches no ruleset.",
+        0,
+        "a date placeholder in a branch name is a template, not a dated claim",
+    ),
+    (
+        "File a `ci-failure` issue ONLY if it has happened more than once.",
+        0,
+        "an instruction that happens to describe recurrence is not narration",
+    ),
+    ("Read the workflow's `concurrency` block before deciding.", 0, "the ordinary instructional case must stay clean"),
+    (
+        "As of 2026-08-10 a human confirmed the only rulesets are per-repo.",
+        1,
+        "a dated confirmation goes stale and the routine cannot tell",
+    ),
+    (
+        "Issues filed by earlier runs carry them: apt#1, #2 and send-to-influx#107.",
+        3,
+        "each issue reference is closed history the routine could read for itself",
+    ),
+    (
+        "Two runs reached opposite conclusions on L337-org/apt#16 for this reason.",
+        1,
+        "the org-qualified form is what the prompts used, and the first pattern missed it",
+    ),
+    (
+        "See https://github.com/L337-org/apt/issues/16 for the detail.",
+        0,
+        "a bare URL carries no hash-digits, so it is not caught by this rule",
+    ),
+    (
+        "That is confirmed observed behaviour on L337-org/apt, not a theory.",
+        2,
+        "evidence that a rule is true, which the routine does not act on",
+    ),
+    (
+        "It has leaked this way before, so none of these checks is optional.",
+        1,
+        "same shape, and the instruction survives without it",
+    ),
+    (
+        "At the time of writing the narrower grep finds 3 sites in 2 modules.",
+        1,
+        "a snapshot the routine can re-derive, and which its own successful run invalidates",
+    ),
+    (
+        "The tap is at present dispatch-only, so a release trigger is the finding.",
+        1,
+        "same shape in a phrasing that does not name writing",
+    ),
+    (
+        "As of now the Projects table lists customer-facing repos only.",
+        1,
+        "and again, since one phrasing being caught proves nothing about the others",
+    ),
+    (
+        "Poll every 2 minutes for about 20 minutes, up to 3 fix cycles, and stop at 1%.",
+        0,
+        "thresholds are instructions: a bare count must never be read as a snapshot",
+    ),
 ]
 
 
@@ -171,29 +213,57 @@ _B = "routines/b.yaml"
 _NAMES = {"A": _A, "B": _B}
 
 README_CASES = [
-    ([_A], {"A": _A}, "| [A](routines/a.yaml) | x |", 0,
-     "a file listed under its exact name is the clean case"),
-    ([_A], {"A": _A}, "nothing here", 1,
-     "a routine missing from the table is the failure a rename or an addition causes"),
-    ([], {}, "| [Ghost](routines/ghost.yaml) | x |", 1,
-     "a row linking a file that does not exist is the failure a removal causes"),
-    ([_A], {"A": _A}, "| [Different](routines/a.yaml) | x |", 1,
-     "matching is by exact name, so a row naming it after nothing is wrong"),
-    ([_A, _B], _NAMES,
-     "| [B](routines/a.yaml) | x |\n| [A](routines/b.yaml) | x |", 2,
-     "two rows with their labels swapped: every name and file exists, and every row is wrong"),
-    ([_A, _B], _NAMES,
-     "| [A](routines/a.yaml) | x |\n| [B](routines/b.yaml) | x |", 0,
-     "the same two rows, correctly paired, must stay clean"),
-    ([_A, _B], _NAMES,
-     "| [B](routines/a.yaml) | x |\n| [B](routines/b.yaml) | x |", 2,
-     "a wrong row must not be excused by a later correct row for the same name"),
-    ([_A, _B], _NAMES,
-     "| [A](routines/a.yaml) | x |\n| [B](routines/a.yaml) | x |\n| [B](routines/b.yaml) | x |", 3,
-     "nor by a later correct row for the same file"),
-    ([_A], {"A": _A}, None, 1,
-     "a missing README.md is reported rather than passing silently",
-     False),
+    ([_A], {"A": _A}, "| [A](routines/a.yaml) | x |", 0, "a file listed under its exact name is the clean case"),
+    (
+        [_A],
+        {"A": _A},
+        "nothing here",
+        1,
+        "a routine missing from the table is the failure a rename or an addition causes",
+    ),
+    (
+        [],
+        {},
+        "| [Ghost](routines/ghost.yaml) | x |",
+        1,
+        "a row linking a file that does not exist is the failure a removal causes",
+    ),
+    (
+        [_A],
+        {"A": _A},
+        "| [Different](routines/a.yaml) | x |",
+        1,
+        "matching is by exact name, so a row naming it after nothing is wrong",
+    ),
+    (
+        [_A, _B],
+        _NAMES,
+        "| [B](routines/a.yaml) | x |\n| [A](routines/b.yaml) | x |",
+        2,
+        "two rows with their labels swapped: every name and file exists, and every row is wrong",
+    ),
+    (
+        [_A, _B],
+        _NAMES,
+        "| [A](routines/a.yaml) | x |\n| [B](routines/b.yaml) | x |",
+        0,
+        "the same two rows, correctly paired, must stay clean",
+    ),
+    (
+        [_A, _B],
+        _NAMES,
+        "| [B](routines/a.yaml) | x |\n| [B](routines/b.yaml) | x |",
+        2,
+        "a wrong row must not be excused by a later correct row for the same name",
+    ),
+    (
+        [_A, _B],
+        _NAMES,
+        "| [A](routines/a.yaml) | x |\n| [B](routines/a.yaml) | x |\n| [B](routines/b.yaml) | x |",
+        3,
+        "nor by a later correct row for the same file",
+    ),
+    ([_A], {"A": _A}, None, 1, "a missing README.md is reported rather than passing silently", False),
 ]
 
 

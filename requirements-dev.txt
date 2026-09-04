@@ -1,0 +1,7 @@
+-r requirements.txt
+# Pinned here rather than named in a CI step, so a developer runs the same versions CI does
+# (CS.3.2, DS.2.1). Bumping one is a reviewed change to this file, not a silent drift in a
+# runner image.
+ruff==0.15.4
+mypy==1.19.0
+types-PyYAML==6.0.12.20250915
