@@ -108,9 +108,9 @@ runs.
 
 **Docstrings are Google style** - `Args:` and `Returns:` sections, capitalised. That is the
 organisation's format for Python, and `ruff`'s pydocstyle rules enforce it here rather than
-review having to. `scripts/check-repo-hygiene.py` is excluded from those rules: it is vendored
-byte-identically into four repositories and its docstring format is settled by the repository
-that owns it, not by this one.
+review having to. That includes `scripts/check-repo-hygiene.py`, which is vendored
+byte-identically into four repositories: a change to it has to land in all four at once, with the
+digest they share regenerated, or its own self-check refuses to run.
 
 **`routines/*.yaml` are exempt from the ASCII punctuation convention.** They are prompt text
 sent to a model rather than prose this project publishes, and rewriting punctuation inside a
