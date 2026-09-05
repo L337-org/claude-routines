@@ -20,10 +20,3 @@ convention = "google"
 # the whole point of it, and each case's name says what it covers better than a docstring would.
 "scripts/test_validate_routines.py" = ["S101", "D103", "D100"]
 
-# The vendored hygiene script is byte-identical in four repositories and its docstring format is
-# settled by docker-mcp's own gate, not by this repository's. It is written in that repository's
-# documented lowercase `args:`/`returns:` house style, which is not Google, so D405 fires on
-# every section. Excluded here rather than converted, because converting it means changing all
-# four copies and the digest they share - work that belongs with the docstring gate that decides
-# the format. Remove this entry when that lands.
-"scripts/check-repo-hygiene.py" = ["D"]
