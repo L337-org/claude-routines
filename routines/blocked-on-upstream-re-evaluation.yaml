@@ -7,7 +7,6 @@ environment: Default
 repositories:
   - https://github.com/L337-org/send-to-influx
   - https://github.com/L337-org/docker-mcp
-  - https://github.com/L337-org/homebrew-tap
 allowed_tools: [Bash, Read, Grep, Glob, WebFetch]
 mcp_connectors: [Slack]
 prompt: |-
@@ -25,13 +24,10 @@ prompt: |-
   SUBJECT 2 — the `mcp` cap in L337-org/send-to-influx `requirements.txt`.
   Read that line to see what it currently admits; do not assume a range and do not restate it back. Establish three things: what the latest published mcp version is; whether anything the cap excludes carries a security fix or a bug fix that matters to an MCP server (auth, transport, streaming, request handling); and whether the import paths `send-to-influx` actually uses still exist in the latest version. Report ONLY where one of those turns something up - a fix that matters, or an import path that has gone. Where nothing between the cap and latest matters and every import still resolves, the cap stands and you say nothing. When you do report, also read L337-org/docker-mcp's `pyproject.toml` for what it admits and `tests/test_pyproject_pins.py` for the guard it uses instead of a cap, and say what is there. That is context for a human decision, NOT a recommendation to copy — the two projects import different surfaces.
 
-  SUBJECT 3 — the paused Homebrew tap (L337-org/homebrew-tap, published from docker-mcp's `publish-homebrew.yaml`).
-  Read docker-mcp's `architecture/distribution.md` for why it is paused and `publish-homebrew.yaml` for its trigger. Test whether that upstream condition still holds. If it has cleared, say so and name the exact evidence. Re-enabling is a human's decision, not yours to propose as done.
-
   Also report, briefly, any NEW deliberate hold you find that is not in this list — a pinned or capped dependency whose comment states a temporary upstream reason. Do not judge it; just name it so a human can decide whether it belongs here. Never propose adding a pin, or re-adding one that was deliberately removed. Never propose a `cryptography` pin in docker-mcp: it is transitive there and its absence is a settled decision, which accepts that a wheels-only Intel-macOS resolve can land on a vulnerable version.
 
   **SPEAK UP WHEN YOU CANNOT WORK, OR WHEN SOMETHING IS UNEXPECTED.** Silence from you is read as "I re-tested every hold and they all still stand", so it must never also mean either of these. Post to Slack when either applies:
-    - **You could not test a subject.** A fetch was blocked or failed — an HTTP 403 carrying `x-deny-reason: host_not_allowed` means the domain is missing from this environment's network allowlist — or a repo would not clone, or PyPI would not answer. Name the host and which subject it stopped you testing. Reporting "2 of 3 subjects checked, PyPI unreachable" is a useful run; reporting nothing because you could not look is not.
+    - **You could not test a subject.** A fetch was blocked or failed — an HTTP 403 carrying `x-deny-reason: host_not_allowed` means the domain is missing from this environment's network allowlist — or a repo would not clone, or PyPI would not answer. Name the host and which subject it stopped you testing. Reporting "1 of 2 subjects checked, PyPI unreachable" is a useful run; reporting nothing because you could not look is not.
     - **An unanticipated case that changed what you could conclude.** Report it ONLY where something this prompt did not anticipate stopped a check completing, or left you unsure whether a result is right. Name the check and say what is now unknown. If you noticed something odd, worked around it and finished cleanly, that is NOT reportable: record it in your run output and stay silent.
   Both override the silent-exit rule below, which applies ONLY when you actually tested every subject, nothing stopped a check completing, and each hold still stands.
 
