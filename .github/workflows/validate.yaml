@@ -72,21 +72,21 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Every `uses:` must name a 40-hex commit SHA
-        uses: L337-org/github-workflows/actions/action-pins@eacd1a299ea09599157cb40a8909aed47c050b3a # v1.1.0
+        uses: L337-org/github-workflows/actions/action-pins@8cb828dee3175ad39277184557e9041195f3cfe2 # v1.1.1
 
   repo-hygiene:
     # Conventions every repository in this organisation shares, checked by the one copy in the
     # shared workflows repository at the commit pinned here.
     runs-on: [ubuntu-latest]
     name: Repository hygiene
-    # 3s observed - a git listing, a YAML parse of the workflows, and some regexes.
+    # Seconds: the shared action sets up uv, then runs a git listing, a YAML parse and regexes.
     timeout-minutes: 5
     steps:
       - name: Check out source repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Repository conventions hold
-        uses: L337-org/github-workflows/actions/repo-hygiene@eacd1a299ea09599157cb40a8909aed47c050b3a # v1.1.0
+        uses: L337-org/github-workflows/actions/repo-hygiene@8cb828dee3175ad39277184557e9041195f3cfe2 # v1.1.1
 
   validate:
     name: Validate routines
