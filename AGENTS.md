@@ -20,6 +20,10 @@ when a routine is first added.
   `schema/routine.md`.
 - `scripts/validate_routines.py` — schema and redaction checks, run in CI
   (`.github/workflows/validate.yaml`) on every push and PR, required on `main`.
+- The `Repository hygiene` and `Action pins are immutable` jobs in `validate.yaml`, and the Claude
+  review in `.github/workflows/code-review.yaml`, call the shared copies in
+  `L337-org/github-workflows`, pinned by full commit SHA. What they check and how to run the
+  hygiene check locally is in that repository's README, at the pinned commit.
 
 ## Redaction rules (enforced by `scripts/validate_routines.py`, not just convention)
 
@@ -108,9 +112,7 @@ runs.
 
 **Docstrings are Google style** - `Args:` and `Returns:` sections, capitalised. That is the
 organisation's format for Python, and `ruff`'s pydocstyle rules enforce it here rather than
-review having to. That includes `scripts/check-repo-hygiene.py`, which is vendored
-byte-identically into four repositories: a change to it has to land in all four at once, with the
-digest they share regenerated, or its own self-check refuses to run.
+review having to.
 
 **`routines/*.yaml` are exempt from the ASCII punctuation convention.** They are prompt text
 sent to a model rather than prose this project publishes, and rewriting punctuation inside a
