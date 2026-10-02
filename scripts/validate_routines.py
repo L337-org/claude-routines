@@ -107,7 +107,11 @@ PR_OPENING_RE = re.compile(_OPEN_PR, re.IGNORECASE)
 # failure this check exists to prevent.
 _NEGATORS = r"never|not|no|cannot|can[\u2019']t|don[\u2019']t|does\s+not|must\s+not|avoid|without"
 NEGATED_OPEN_PR_RE = re.compile(rf"\b(?:{_NEGATORS})\b(?:\s+\w+){{0,2}}\s+{_OPEN_PR}", re.IGNORECASE)
-REVIEW_BODY_MARKERS = ("READ THE REVIEW BODY, NOT ONLY THE THREADS", "get_reviews")
+REVIEW_BODY_MARKERS = (
+    "READ THE REVIEW BODY, NOT ONLY THE THREADS",
+    "get_reviews",
+    "Claude review: automatic reviews are paused",
+)
 
 # A routine that dedupes against its own earlier `sweep-data` blocks must read the channel
 # newest-first. A Slack read bounded by `oldest` alone can return the oldest page first, so the
