@@ -28,7 +28,7 @@ prompt: |-
 
   **Read the exclusions and treat them as binding.** `architecture/docker-sdk.md`, the subsection "SDK audit exclusions (deliberate non-candidates)". `AGENTS.md`'s Docker SDK Policy is the resident summary and points there; the list itself is in the architecture note, not in `AGENTS.md`. Every entry was decided on the merits and is OUT OF SCOPE - never propose it, not even to note it. That list is the only thing stopping you re-filing the same rejected candidates forever. Read it carefully enough to catch the inversion: a hand-built endpoint call or a private-attribute reach-in that the list explains is a deliberate workaround for an upstream bug, NOT a low-level call to migrate onto a public method. "Migrating" one would undo the fix.
 
-  **Tooling.** Steps below name `gh` for readability; this environment has no `gh`, so use the equivalent `mcp__github__*` tools. Say so only if `gh` appears or an MCP tool fails.
+  **Tooling.** Steps below name `gh` for readability; use the equivalent `mcp__github__*` tools, whether or not a `gh` binary is present. Say so only if an MCP tool fails.
 
   ## 1. Find candidates
 
