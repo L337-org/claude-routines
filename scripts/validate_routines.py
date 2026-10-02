@@ -107,7 +107,19 @@ PR_OPENING_RE = re.compile(_OPEN_PR, re.IGNORECASE)
 # failure this check exists to prevent.
 _NEGATORS = r"never|not|no|cannot|can[\u2019']t|don[\u2019']t|does\s+not|must\s+not|avoid|without"
 NEGATED_OPEN_PR_RE = re.compile(rf"\b(?:{_NEGATORS})\b(?:\s+\w+){{0,2}}\s+{_OPEN_PR}", re.IGNORECASE)
-REVIEW_BODY_MARKERS = ("READ THE REVIEW BODY, NOT ONLY THE THREADS", "get_reviews")
+REVIEW_BODY_MARKERS = (
+    "READ THE REVIEW BODY, NOT ONLY THE THREADS",
+    "get_reviews",
+    "Claude review: automatic reviews are paused",
+)
+
+# A routine that dedupes against its own earlier `sweep-data` blocks must read the channel
+# newest-first. A Slack read bounded by `oldest` alone can return the oldest page first, so the
+# recent blocks never arrive and every carried item looks new - a run that hit it reads exactly
+# like a clean one. The marker is the start of the rule; the full text is in any routine that
+# reads them.
+SWEEP_DATA_READ_RE = re.compile(r"union of every `sweep-data` block")
+SWEEP_DATA_ORDER_MARKER = "Read newest-first: start with no `oldest` bound"
 
 # A prompt is an instruction to a model, not a changelog. Four kinds of text fail that
 # test and are rejected here, because every one of them is paid for on every run and none
@@ -295,6 +307,14 @@ def check_file(path, text, data, errors):
             f"{path}: declares 'autofix_on_pr_create' but never opens a pull request, so the "
             f"field does nothing. Remove it - the read-only routines carry no such field live, "
             f"and this file should describe what is actually configured."
+        )
+
+    if prompt and SWEEP_DATA_READ_RE.search(prompt) and SWEEP_DATA_ORDER_MARKER not in prompt:
+        errors.append(
+            f"{path}: reads earlier `sweep-data` blocks but its prompt omits the reading-order "
+            f"rule (missing {SWEEP_DATA_ORDER_MARKER!r}) - a read bounded by `oldest` alone can "
+            f"skip the newest blocks and report carried items as new. Copy the sentence verbatim "
+            f"from any other routine that reads `sweep-data` blocks."
         )
 
     expected_slug = slugify(data.get("name", ""))
