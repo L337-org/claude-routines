@@ -32,8 +32,8 @@ Checks, per file:
     live in `scripts/test_validate_routines.py`.
   - a prompt that instructs opening a pull request also tells the routine to
     commit with `git commit -s`, so every commit it pushes carries a
-    `Signed-off-by:` trailer. Opening a pull request is the test because it is
-    what every committing routine does; one that commits never asks for it.
+    `Signed-off-by:` trailer. Opening a pull request is the test because every
+    routine that commits also opens one.
 
 Across all files:
   - every {{routine: <name>}} placeholder names a routine that exists here

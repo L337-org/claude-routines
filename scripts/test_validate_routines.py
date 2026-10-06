@@ -5,9 +5,9 @@ Plain asserts, no test framework: this repo has one CI job and no test dependenc
 adding one for a single module would cost more than it returns. Run with
 `python scripts/test_validate_routines.py`; CI runs it alongside the validator itself.
 
-Two things are covered. `opens_pull_requests` decides by judgement rather than by shape,
-and it gates both of the PR-opening requirements, so a false negative silently exempts a
-routine from them - a first attempt at it did exactly that, scanning a fixed window for the
+`opens_pull_requests` is covered because it decides by judgement rather than by shape,
+and every PR-opening requirement hangs off it, so a false negative silently exempts a
+routine from all of them - a first attempt at it did exactly that, scanning a fixed window for the
 substring "never" and so letting an unrelated "NEVER push to `main`" nearby suppress a real
 match. The `autofix_on_pr_create` rule is covered because a routine that loses that field
 stops being woken for its own PRs, silently, and the field is invisible in the web UI.
