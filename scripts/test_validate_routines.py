@@ -11,6 +11,8 @@ routine from them - a first attempt at it did exactly that, scanning a fixed win
 substring "never" and so letting an unrelated "NEVER push to `main`" nearby suppress a real
 match. The `autofix_on_pr_create` rule is covered because a routine that loses that field
 stops being woken for its own PRs, silently, and the field is invisible in the web UI.
+The sign-off rule is covered for the same reason: it hangs off the same judgement, and a
+routine that loses it pushes commits without a `Signed-off-by:` trailer and nothing says so.
 `check_prompt_is_instructional` is covered because it is the only check that rejects text
 on judgement rather than shape, so its false positives are what would get it switched off:
 a Slack channel is not an issue reference, and a date placeholder in a branch name is not a
@@ -74,7 +76,14 @@ def main():
                 f"    autofix={autofix!r} prompt={prompt!r}"
             )
 
-    total = len(CASES) + len(AUTOFIX_CASES) + len(INSTRUCTIONAL_CASES) + len(README_CASES)
+    for prompt, expected, description in SIGNOFF_CASES:
+        actual = len(_signoff_errors(prompt))
+        if actual != expected:
+            failures.append(
+                f"  expected {expected} sign-off error(s), got {actual}: {description}\n    prompt={prompt!r}"
+            )
+
+    total = len(CASES) + len(AUTOFIX_CASES) + len(SIGNOFF_CASES) + len(INSTRUCTIONAL_CASES) + len(README_CASES)
     for prompt, expected, why in INSTRUCTIONAL_CASES:
         got = len(_instructional_errors(prompt))
         if got != expected:
@@ -96,7 +105,7 @@ def main():
         return 1
 
     print(
-        f"OK: {len(CASES)} opens_pull_requests, {len(AUTOFIX_CASES)} autofix, "
+        f"OK: {len(CASES)} opens_pull_requests, {len(AUTOFIX_CASES)} autofix, {len(SIGNOFF_CASES)} sign-off, "
         f"{len(INSTRUCTIONAL_CASES)} instructional-prompt and {len(README_CASES)} "
         f"readme-table case(s) passed"
     )
@@ -125,6 +134,25 @@ AUTOFIX_CASES = [
     (READ_ONLY, None, 0, "a read-only routine correctly carries no such field"),
     (READ_ONLY, True, 1, "the field does nothing on a routine that opens no PR"),
     (READ_ONLY, False, 1, "likewise false: the file should describe what is configured"),
+]
+
+
+def _signoff_errors(prompt):
+    """The sign-off errors check_file() raises for a minimal routine."""
+    errors = []
+    check_file("routines/example.yaml", "", {"prompt": prompt}, errors)
+    return [e for e in errors if "Signed-off-by" in e]
+
+
+SIGNOFF_CASES = [
+    (OPENS, 1, "a PR-opening routine that never asks for sign-off is rejected"),
+    (OPENS + " Make every commit with `git commit -s`.", 0, "and accepted once it does"),
+    (
+        OPENS + " Every commit carries a `Signed-off-by:` trailer.",
+        1,
+        "describing the trailer is not asking for the flag",
+    ),
+    (READ_ONLY, 0, "a routine that opens no PR makes no commits, so it is exempt"),
 ]
 
 # (prompt fragment, expected error count, what the case is for)

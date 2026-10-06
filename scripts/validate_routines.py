@@ -30,6 +30,10 @@ Checks, per file:
     report "no new findings" on a review that holds a real one. Prompts that
     never open a PR are exempt - see `opens_pull_requests`, whose own cases
     live in `scripts/test_validate_routines.py`.
+  - a prompt that instructs opening a pull request also tells the routine to
+    commit with `git commit -s`, so every commit it pushes carries a
+    `Signed-off-by:` trailer. Opening a pull request is the test because it is
+    what every committing routine does; one that commits never asks for it.
 
 Across all files:
   - every {{routine: <name>}} placeholder names a routine that exists here
@@ -112,6 +116,11 @@ REVIEW_BODY_MARKERS = (
     "get_reviews",
     "Claude review: automatic reviews are paused",
 )
+
+# The flag rather than the trailer: the trailer's text is what `-s` produces, so asking for the
+# flag is what makes it appear, and a prompt that only describes the trailer leaves the routine
+# to write one by hand.
+SIGNOFF_MARKER = "git commit -s"
 
 # A routine that dedupes against its own earlier `sweep-data` blocks must read the channel
 # newest-first. A Slack read bounded by `oldest` alone can return the oldest page first, so the
@@ -292,6 +301,12 @@ def check_file(path, text, data, errors):
                 f"{path}: opens pull requests but its prompt omits the review-body guidance "
                 f"(missing {', '.join(absent)}) - a suppressed review finding would be missed. "
                 f"Copy the block verbatim from routines/mcp-vs-skills-figure-drift.yaml."
+            )
+        if SIGNOFF_MARKER not in prompt:
+            errors.append(
+                f"{path}: opens pull requests but its prompt never says to commit with "
+                f"`{SIGNOFF_MARKER}`, so its commits would carry no `Signed-off-by:` trailer. "
+                f"Copy the sentence from routines/mcp-vs-skills-figure-drift.yaml."
             )
         if data.get("autofix_on_pr_create") is not True:
             errors.append(
