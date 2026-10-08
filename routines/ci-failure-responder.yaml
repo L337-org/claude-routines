@@ -9,7 +9,7 @@ repositories:
   - https://github.com/L337-org/send-to-influx
   - https://github.com/L337-org/apt
 allowed_tools: [Bash, Read, Write, Edit, Glob, Grep]
-mcp_connectors: [Slack, Atlassian-Rovo]
+mcp_connectors: [Slack, Atlassian-MCP]
 autofix_on_pr_create: true
 
 prompt: |-

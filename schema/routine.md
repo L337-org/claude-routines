@@ -13,7 +13,7 @@ the exact rules.
 | `environment` | yes | string | The environment's **name** (e.g. `Default`), never its `environment_id`. See "Why no raw ids" below. |
 | `repositories` | yes | list of URLs | `https://github.com/...` sources the routine's session is given. |
 | `allowed_tools` | yes | list of strings | Tool names the routine's session may use. |
-| `mcp_connectors` | no | list of strings | MCP connector **names**, spelled exactly as the platform does: `Slack`, and `Atlassian-Rovo` with a hyphen rather than an underscore. Attached via <https://claude.ai/customize/connectors>, and never `connector_uuid`. **Never list `GitHub` here** - see "GitHub access is not a connector" below. |
+| `mcp_connectors` | no | list of strings | MCP connector **names**, spelled exactly as the platform does: `Slack`, and `Atlassian-MCP` with a hyphen rather than an underscore. Attached via <https://claude.ai/customize/connectors>, and never `connector_uuid`. **Never list `GitHub` here** - see "GitHub access is not a connector" below. |
 | `network_allowlist` | no | list of hostnames | Domains this routine's cloud environment needs on its outbound allowlist to do its job (bare hostnames, no scheme/path). Best-effort - populated from domains a routine's own prompt explicitly names as required, not an exhaustive audit of every fetch target. Extend it when a routine reports a blocked domain it needs. **Not part of the live routine config** (like `note`): the allowlist belongs to the shared *environment*, so this field records what that environment must permit for the routine to work, and `RemoteTrigger` never returns it. Absence from live config is expected, not drift. Declare a host only where the prompt actually instructs a fetch of it - a host merely mentioned in passing does not belong here. |
 | `autofix_on_pr_create` | only if the routine opens PRs | boolean | Must be `true` on any routine whose prompt instructs opening a pull request, and absent on every other routine. Validation enforces both. See "Why autofix_on_pr_create must be true, explicitly" below. |
 | `note` | no | string | Context for a human reading this file. Not part of the live routine config, and exempt from the prompt-content rule below - so it is where a date, an incident or an issue reference goes when a human needs it and the routine does not. |
@@ -38,10 +38,8 @@ same prompts, days apart:
 * `L337-org/docker-mcp#194`, field **`false`**: no wake at all. The session went idle on its own
   `sleep` timer and was never told that CI had finished or that a review existed.
 
-**Absent is not a state this repo can hold.** The claude.ai web UI writes `false` into the field
-whenever a routine is edited there - that is how it was turned off on all four PR-opening routines
-at once, unnoticed, while their prompts were being edited for an unrelated reason. Declaring `true`
-gives a value that can be asserted here and seen to drift; absent gives an undocumented default.
+**Declare it rather than leave it absent.** Declaring `true` gives a value that can be asserted
+here and seen to drift; absent gives an undocumented default.
 
 **Read the live config before overwriting a routine.** The UI also adds `outcomes` (generated
 `claude/*` branch names) which this repo does not model, so applying from these files without
@@ -106,15 +104,13 @@ declaration here.
 ## The connector uuid comes from the interface, not from a name
 
 `mcp_connections` requires a `connector_uuid`; the API will not resolve a connector by name. An
-update passing only `{"name": "Atlassian-Rovo"}` is rejected with
+update passing only `{"name": "Atlassian-MCP"}` is rejected with
 `mcp_connections.<n>.connector_uuid: Field required`, where `<n>` is that entry's position in the
 list. The rejection is atomic, so nothing is changed.
 
 A connector being connected at account level does not make it addressable. Its uuid has to come out
 of the platform once: add it to a routine through the web interface, read the uuid back with
-`RemoteTrigger action: "get"`, and reuse that value for every subsequent apply. Do that on a routine
-that opens no pull requests, because the interface writes `autofix_on_pr_create: false` into
-whatever it touches and the field cannot afterwards be cleared through the API.
+`RemoteTrigger action: "get"`, and reuse that value for every subsequent apply.
 
 ## Two API behaviours to know when applying a file by hand
 
