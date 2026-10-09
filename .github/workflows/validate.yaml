@@ -91,9 +91,8 @@ jobs:
   validate:
     name: Validate routines
     runs-on: ubuntu-latest
-    # 5s observed max - a YAML parse and a field check over 11 small files. Without one a job
-    # inherits GitHub's 6-hour default, and a job killed by this timeout reports
-    # `conclusion: cancelled` rather than `failure`, so it would notify nobody either way.
+    # A YAML parse and a field check over the routine files, so a few seconds.  Without a bound
+    # a hang would hold the run for GitHub's six-hour default.
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

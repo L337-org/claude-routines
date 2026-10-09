@@ -24,10 +24,10 @@ when a routine is first added.
   review in `.github/workflows/code-review.yaml`, call the shared copies in
   `L337-org/github-workflows`, pinned by full commit SHA. What they check and how to run the
   hygiene check locally is in that repository's README, at the pinned commit.
-- `.github/workflows/report-failures.yaml` posts a failed run of `validate.yaml` started by a push
-  to `main` to Slack, through the shared reporter in `L337-org/github-workflows`.  A new workflow
-  triggered by `schedule`, `push` or `release` needs its `name:` added to that file's
-  `workflows:` list, which the hygiene check enforces.
+- `.github/workflows/report-failures.yaml` posts failed runs of the workflows in its `workflows:`
+  list, started by a schedule, a push to `main` or a release, to Slack, through the shared
+  reporter in `L337-org/github-workflows`.  A new workflow triggered by `schedule`, `push` or
+  `release` needs its `name:` added to that list, which the hygiene check enforces.
 
 ## Redaction rules (enforced by `scripts/validate_routines.py`, not just convention)
 
