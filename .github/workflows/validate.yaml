@@ -91,8 +91,8 @@ jobs:
   validate:
     name: Validate routines
     runs-on: ubuntu-latest
-    # A YAML parse and a field check over the routine files, so a few seconds.  Without a bound
-    # a hang would hold the run for GitHub's six-hour default.
+    # A YAML parse and a field check over the routine files.  Without a bound a hang would hold
+    # the run for GitHub's six-hour default.
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
