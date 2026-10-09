@@ -25,9 +25,10 @@ when a routine is first added.
   `L337-org/github-workflows`, pinned by full commit SHA. What they check and how to run the
   hygiene check locally is in that repository's README, at the pinned commit.
 - `.github/workflows/report-failures.yaml` posts failed runs of the workflows in its `workflows:`
-  list, started by a schedule, a push to `main` or a release, to Slack, through the shared
-  reporter in `L337-org/github-workflows`.  A new workflow triggered by `schedule`, `push` or
-  `release` needs its `name:` added to that list, which the hygiene check enforces.
+  list, started by a schedule, a push to `main`, a release or a pull request, to Slack, through
+  the shared reporter in `L337-org/github-workflows`.  Runs started by hand are left out, because
+  whoever started one is watching.  A new workflow triggered by `schedule`, `push`, `release` or
+  `pull_request` needs its `name:` added to that list, which the hygiene check enforces.
 
 ## Redaction rules (enforced by `scripts/validate_routines.py`, not just convention)
 
