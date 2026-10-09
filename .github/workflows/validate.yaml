@@ -72,7 +72,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Every `uses:` must name a 40-hex commit SHA
-        uses: L337-org/github-workflows/actions/action-pins@68eac351110ef94d36c0b98cec08339cd22c7ab7 # v1.2.0
+        uses: L337-org/github-workflows/actions/action-pins@fd692a603b2f6bb8bc73aaeaefa46c24b409705b # v1.3.1
 
   repo-hygiene:
     # Conventions every repository in this organisation shares, checked by the one copy in the
@@ -86,14 +86,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Repository conventions hold
-        uses: L337-org/github-workflows/actions/repo-hygiene@68eac351110ef94d36c0b98cec08339cd22c7ab7 # v1.2.0
+        uses: L337-org/github-workflows/actions/repo-hygiene@fd692a603b2f6bb8bc73aaeaefa46c24b409705b # v1.3.1
 
   validate:
     name: Validate routines
     runs-on: ubuntu-latest
-    # 5s observed max - a YAML parse and a field check over 11 small files. Without one a job
-    # inherits GitHub's 6-hour default, and a job killed by this timeout reports
-    # `conclusion: cancelled` rather than `failure`, so it would notify nobody either way.
+    # A YAML parse and a field check over the routine files.  Without a bound a hang would hold
+    # the run for GitHub's six-hour default.
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
