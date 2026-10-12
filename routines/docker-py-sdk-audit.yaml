@@ -32,13 +32,13 @@ prompt: |-
 
   ## 1. Find candidates
 
-  Use the project's `/docker-sdk` skill (see the Docker SDK Policy in `AGENTS.md`). Three categories:
+  Use the project's `/docker-sdk` skill (see the Docker SDK Policy in `AGENTS.md`). Four categories:
 
   1. Existing low-level `client.api.*` calls that a high-level SDK method could now replace. Grep `docker_mcp/tools/*.py` for `\.api\b`, NOT for `.api.`: most call sites bind `api = _get_client(host).api` to a local first and then call `api.inspect_service(...)`, so `.api.` misses them and returns what looks exactly like "no category-1 candidates". Scan every tools module, and do not trust a clean grep from the narrower pattern.
   2. Net-new Engine API surface docker-py exposes that docker-mcp does not yet cover.
   3. **Deprecated surface we still depend on** - anything we pass or call that docker-py or the Engine API has renamed, superseded or marked for removal, so a migration happens on our schedule rather than when removal breaks us. Check parameter names against the Engine API spec (`moby/moby`'s `api/swagger.yaml`), not only docker-py's docstrings, which lag. `architecture/docker-sdk.md` lists the renames already handled; read it before reporting one.
 
-  Deliberately ignore `compose.py`, `buildx.py`, `scout.py`, `context.py` and `stack.py`: CLI-only features, never part of the Engine API, out of scope.
+  4. **CLI shell-outs a first-party Python API could now replace.** First-party means a Python API published by Docker: docker-py, or any other Python package Docker publishes that covers part of this server's functionality, should it ever split one out. Find the CLI-backed tools by grepping `docker_mcp/tools/*.py` for `run_docker`, not from a remembered list. For each operation they shell out for, check whether the latest docker-py release covers it, including public modules readthedocs does not render (for example `docker.context`), and check the `docker` GitHub organisation and PyPI for a Docker-published Python package covering Compose, Buildx, Scout, Stack or Context. Read `architecture/cli-shell-out.md` first: moving a tool off the CLI also moves it off the SSH remote-exec fallback and file staging, and changes whose credentials and which context it uses, so every candidate has to say what would change for a caller. Category 4 candidates are reported, never implemented - see section 3.
 
   **Audit the latest PUBLISHED docker-py, not just the pinned one.** `uv.lock` routinely trails what `pyproject.toml`'s floor lets a fresh `uvx`/`pip install` resolve, so the installed tree is not what published users are running. Find the latest PyPI release, compare it to the locked version, and if they differ: audit the latest release's surface AND report the drift itself, including any behavioural change in its release notes touching this server (host/context resolution, auth, streaming, default API version).
 
@@ -59,6 +59,8 @@ prompt: |-
   **Only rung (1) is yours.** Rungs (2) and (3) leave the supported surface and are explicitly not an agent's call to make. If a candidate needs one, STOP: do not implement it. Write up what you found, why the public path fails, and which rung would be needed, and escalate it to Slack for a human decision. Documenting and escalating is the correct outcome, not a failure to finish: hand-rolling the call instead would make a trust decision nobody asked you to make.
 
   Implement the rung-(1) candidates and escalate the rest in the same run; a PR containing the safe half plus a Slack note about the other half is a good outcome.
+
+  **A category-4 candidate (CLI to first-party API) is never implemented and never goes in the PR, even when the API path verifies cleanly.** Report it to Slack for a human to decide whether and how to migrate: the tool, the CLI command it runs today, the API method or package that could replace it (verified per section 2, with the source location you read), what would change for a caller under `architecture/cli-shell-out.md` (remote-exec fallback, staging, credentials, context), and your recommendation. A category-4 candidate alone is not a reason to open a PR.
 
   ## 4. Implement
 
@@ -93,6 +95,6 @@ prompt: |-
 
   ## 8. Report to Slack
 
-  Post to #docker-mcp (channel id C0BAP2FTQ6N) whenever you did anything or hit anything: the PR number and title with its current CI state, one line per implemented candidate, anything escalated for a human decision under section 3, anything unverified, and anything from section 7. Internal routine links are fine here - Slack is private, unlike the PR.
+  Post to #docker-mcp (channel id C0BAP2FTQ6N) whenever you did anything or hit anything: the PR number and title with its current CI state, one line per implemented candidate, anything escalated for a human decision under section 3, each CLI-to-API candidate written up as section 3 describes, anything unverified, and anything from section 7. Internal routine links are fine here - Slack is private, unlike the PR.
 
   If there were genuinely no candidates, every check ran, and nothing stopped a check completing, end the run silently. No empty PRs, no "nothing to report" messages.

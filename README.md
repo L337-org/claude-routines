@@ -53,7 +53,7 @@ routine's actual functional behaviour (which channel it posts to), not an artefa
 | [ci-failure responder](routines/ci-failure-responder.yaml) | Twice daily, 06:20 and 18:20 | ✅ | docker-mcp, send-to-influx, apt | Sweeps CI failures across all three repos: opens a PR for what it fixes, files one Jira issue covering the remainder, and reports transient ones to Slack. |
 | [Glama listing drift check](routines/glama-listing-drift-check.yaml) | Weekly, Wed 08:00 | ✅ | docker-mcp | Compares the three letter grades on docker-mcp's Glama.ai listing against a fixed baseline. Grades only; no metadata and no repo comparison. |
 | [MCP vs skills figure drift](routines/mcp-vs-skills-figure-drift.yaml) | Weekly, Thu 07:00 | ✅ | docker-mcp | Re-measures `MCP_VS_SKILLS.md`'s figures and the server/skill functional comparison; opens a PR when a movement is worth republishing. |
-| [docker-py SDK audit](routines/docker-py-sdk-audit.yaml) | Weekly, Mon 08:00 | ✅ | docker-mcp | Detects docker-py SDK coverage gaps / deprecated surface, implements the safe ones and opens a PR. |
+| [docker-py SDK audit](routines/docker-py-sdk-audit.yaml) | Weekly, Mon 08:00 | ✅ | docker-mcp | Detects docker-py SDK coverage gaps / deprecated surface, implements the safe ones and opens a PR. Reports CLI shell-outs a first-party Docker Python API could replace to Slack, without implementing them. |
 | [Claude model deprecation check](routines/claude-model-deprecation-check.yaml) | Monthly, 15th 09:00 | ✅ | claude-routines | Checks every `model:` value used in this repo against Anthropic's published deprecation/retirement dates. |
 
 ## Recreating or updating a routine
