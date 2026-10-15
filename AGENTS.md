@@ -20,7 +20,7 @@ when a routine is first added.
   `schema/routine.md`.
 - `scripts/validate_routines.py` — schema and redaction checks, run in CI
   (`.github/workflows/validate.yaml`) on every push and PR, required on `main`.
-- The `Repository hygiene` and `Action pins are immutable` jobs in `validate.yaml`, and the Claude
+- The `Repository hygiene` and `Action pin check` jobs in `validate.yaml`, and the Claude
   review in `.github/workflows/code-review.yaml`, call the shared copies in
   `L337-org/github-workflows`, at its major-version tag. What they check and how to run the
   hygiene check locally is in that repository's README, at that version.
@@ -36,7 +36,7 @@ when a routine is first added.
   the tag reaches this repository with no change here.  What it reaches: the review's
   `CLAUDE_CODE_OAUTH_TOKEN` secret and its `pull-requests: write` permission, the
   `SLACK_BOT_TOKEN` secret passed to both Slack workflows, and the logic of the `Repository
-  hygiene` and `Action pins are immutable` checks, which are required on `main`.
+  hygiene` and `Action pin check` checks, which are required on `main`.
 
 ## Redaction rules (enforced by `scripts/validate_routines.py`, not just convention)
 

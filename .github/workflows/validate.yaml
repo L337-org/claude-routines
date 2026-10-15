@@ -61,15 +61,13 @@ jobs:
 
   action-pins:
     # Every `uses:` names a full commit SHA, or for the shared workflows repository its version
-    # tag, checked by the shared copy named here. The weekly standards reminder is told every
-    # repository with a workflow carries this job and so never checks pins itself; without it
-    # here, that would leave these pins held by discipline alone.
+    # tag, checked by the shared copy named here.  That tag is accepted only while a ruleset in
+    # the shared workflows repository limits who can move it to those who can merge there.  The
+    # weekly standards reminder is told every repository with a workflow carries this job and so
+    # never checks pins itself; without it here, that would leave these pins held by discipline
+    # alone.
     runs-on: [ubuntu-latest]
-    # The name stays although the check now allows the shared workflows' major-version tag,
-    # because a required status check binds to it by name, and a rename would leave main waiting
-    # on a check that never reports.  That tag is accepted only while a ruleset in the shared
-    # workflows repository limits who can move it to those who can merge there.
-    name: Action pins are immutable
+    name: Action pin check
     # A grep over the workflow files.
     timeout-minutes: 5
     steps:
