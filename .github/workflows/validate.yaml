@@ -60,9 +60,10 @@ jobs:
         run: mypy scripts/
 
   action-pins:
-    # Every `uses:` names a full commit SHA, checked by the shared copy pinned here. The weekly
-    # standards reminder is told every repository with a workflow carries this job and so never
-    # checks pins itself; without it here, that would leave these pins held by discipline alone.
+    # Every `uses:` names a full commit SHA, or for the shared workflows repository its version
+    # tag, checked by the shared copy named here. The weekly standards reminder is told every
+    # repository with a workflow carries this job and so never checks pins itself; without it
+    # here, that would leave these pins held by discipline alone.
     runs-on: [ubuntu-latest]
     name: Action pins are immutable
     # A grep over the workflow files.
@@ -71,12 +72,12 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Every `uses:` must name a 40-hex commit SHA
-        uses: L337-org/github-workflows/actions/action-pins@fd692a603b2f6bb8bc73aaeaefa46c24b409705b # v1.3.1
+      - name: Every `uses:` must name a 40-hex commit SHA or a protected version tag
+        uses: L337-org/github-workflows/actions/action-pins@v2
 
   repo-hygiene:
     # Conventions every repository in this organisation shares, checked by the one copy in the
-    # shared workflows repository at the commit pinned here.
+    # shared workflows repository at the version named here.
     runs-on: [ubuntu-latest]
     name: Repository hygiene
     # Seconds: the shared action sets up uv, then runs a git listing, a YAML parse and regexes.
@@ -86,7 +87,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Repository conventions hold
-        uses: L337-org/github-workflows/actions/repo-hygiene@fd692a603b2f6bb8bc73aaeaefa46c24b409705b # v1.3.1
+        uses: L337-org/github-workflows/actions/repo-hygiene@v2
 
   validate:
     name: Validate routines

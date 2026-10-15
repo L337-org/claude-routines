@@ -1,0 +1,19 @@
+name: 'Announce pull requests'
+
+# Posts each pull request that needs action - opened, reopened, or marked ready for review - to
+# the Slack channel named below, through the shared announcer and the bot token in the
+# `SLACK_BOT_TOKEN` secret.  Drafts and pull requests from forks are skipped there.
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+permissions: {}
+
+jobs:
+  slack:
+    name: Announce to Slack
+    uses: L337-org/github-workflows/.github/workflows/slack-on-pull-request.yaml@v2
+    with:
+      channel: '#l337-org'
+    secrets:
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
