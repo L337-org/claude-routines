@@ -30,9 +30,13 @@ when a routine is first added.
   for by comment, is left out, because whoever started it is watching.  A new workflow triggered
   by `schedule`, `push`, `release` or `pull_request` needs its `name:` added to that list, which
   the hygiene check enforces.
-- `.github/workflows/announce-pull-requests.yaml` posts each pull request that needs action -
-  opened, reopened, or marked ready for review, but not a draft or one from a fork - to
-  `#l337-org`, through the shared announcer in `L337-org/github-workflows`.
+- `.github/workflows/announce-pull-requests.yaml` posts each pull request that needs action to
+  Slack, through the shared announcer in `L337-org/github-workflows`.
+- Because those calls name the shared workflows' major-version tag, a release there that moves
+  the tag reaches this repository with no change here.  What it reaches: the review's
+  `CLAUDE_CODE_OAUTH_TOKEN` secret and its `pull-requests: write` permission, the
+  `SLACK_BOT_TOKEN` secret passed to both Slack workflows, and the logic of the `Repository
+  hygiene` and `Action pins are immutable` checks, which are required on `main`.
 
 ## Redaction rules (enforced by `scripts/validate_routines.py`, not just convention)
 

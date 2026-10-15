@@ -65,6 +65,10 @@ jobs:
     # repository with a workflow carries this job and so never checks pins itself; without it
     # here, that would leave these pins held by discipline alone.
     runs-on: [ubuntu-latest]
+    # The name stays although the check now allows the shared workflows' major-version tag,
+    # because it is a required status check on main and a rename would leave main waiting on a
+    # check that never reports.  That tag is accepted only while a ruleset in the shared
+    # workflows repository limits who can move it to those who can merge there.
     name: Action pins are immutable
     # A grep over the workflow files.
     timeout-minutes: 5
@@ -72,7 +76,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Every `uses:` must name a 40-hex commit SHA or a protected version tag
+      - name: Every `uses:` must name a 40-hex commit SHA, or the shared workflows' major-version tag
         uses: L337-org/github-workflows/actions/action-pins@v2
 
   repo-hygiene:
