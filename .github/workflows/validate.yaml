@@ -66,8 +66,8 @@ jobs:
     # here, that would leave these pins held by discipline alone.
     runs-on: [ubuntu-latest]
     # The name stays although the check now allows the shared workflows' major-version tag,
-    # because it is a required status check on main and a rename would leave main waiting on a
-    # check that never reports.  That tag is accepted only while a ruleset in the shared
+    # because a required status check binds to it by name, and a rename would leave main waiting
+    # on a check that never reports.  That tag is accepted only while a ruleset in the shared
     # workflows repository limits who can move it to those who can merge there.
     name: Action pins are immutable
     # A grep over the workflow files.
