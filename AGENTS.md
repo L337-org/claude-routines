@@ -32,11 +32,6 @@ when a routine is first added.
   the hygiene check enforces.
 - `.github/workflows/announce-pull-requests.yaml` posts each pull request that needs action to
   Slack, through the shared announcer in `L337-org/github-workflows`.
-- Because those calls name the shared workflows' major-version tag, a release there that moves
-  the tag reaches this repository with no change here.  What it reaches: the review's
-  `CLAUDE_CODE_OAUTH_TOKEN` secret and its `pull-requests: write` permission, the
-  `SLACK_BOT_TOKEN` secret passed to both Slack workflows, and the logic of the `Repository
-  hygiene` and `Action pin check` checks, which are required on `main`.
 
 ## Redaction rules (enforced by `scripts/validate_routines.py`, not just convention)
 
