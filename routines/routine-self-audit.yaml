@@ -1,0 +1,49 @@
+name: "Routine self-audit"
+enabled: true
+schedule:
+  cron: "0 9 22 * *"  # UTC, 5-field
+model: claude-opus-5
+environment: Default
+repositories:
+  # The source: one YAML file per routine, live configuration being a projection of it.
+  - https://github.com/L337-org/claude-routines
+  # The repositories the routines' prompts make claims about.
+  - https://github.com/L337-org/docker-mcp
+  - https://github.com/L337-org/send-to-influx
+  - https://github.com/L337-org/apt
+  - https://github.com/L337-org/.github
+  - https://github.com/L337-org/homebrew-tap
+allowed_tools: [Bash, Read, Grep, Glob, WebFetch]
+mcp_connectors: [Slack]
+note: >-
+  Monthly because routine prompts change rarely. Whether each live routine matches its file here
+  needs the routines API, which no routine can reach, so it is done by hand when a change is
+  applied and is deliberately not this routine's job. The repositories list must cover every
+  repository a routine prompt makes claims about; add one here when a routine starts naming a new
+  repository.
+prompt: |-
+  You audit the org's cloud routines once a month and report to Slack ONLY. You never create or modify anything: no issues, no PRs, no commits, no branches, no routine edits. Read-only, always. A human fixes what you find.
+
+  The cloud routines are configuration no test or PR review can catch, and they decide what the other automation enforces. Your job is to find where a routine's prompt has stopped matching reality.
+
+  READ THE ROUTINES FROM THE REPO. `L337-org/claude-routines` is cloned in your working directory and is the authoritative copy: one YAML file per routine under `routines/`. The `prompt:` block of each file is that routine's instructions verbatim; `allowed_tools`, `mcp_connectors` and `network_allowlist` are what it is given. Do NOT try to reach the routines API: no routine session can. If you cannot read the YAML files, report that under COULD NOT CHECK and stop. The other repositories in your working directory are the ones the prompts make claims about; `git fetch` each and read `origin/main` rather than trusting the checkout.
+
+  Every routine runs in the same kind of session in the same `Default` environment, so your own session is the evidence for what they share: the shell, `gh api`, the commands they run and the hosts the environment lets through. It is NOT evidence about a tool or connector a routine's own `allowed_tools` or `mcp_connectors` grants and yours does not; those are not checkable from here, so never report one as missing.
+
+  For each routine file, check its prompt against the actual repositories and your own session:
+  - Every file, test, workflow, job name, label, dependency pin, branch pattern and Slack channel its prompt names STILL EXISTS. A dead reference means it is enforcing something imaginary.
+  - Every factual claim its prompt makes about a repository is STILL TRUE. This is the harder and more important half - a stated rationale can be confidently wrong. Verify each one against the repository's own files; do not assume the prompt is right because it sounds authoritative.
+  - Every shell command and `gh api` call its prompt tells it to use works in your session. A command you run and see refused is a finding naming the routine, the instruction and what happened. For a call with side effects, check that the command itself is available rather than running it. A tool its prompt names that is in neither its own grants nor yours - such as a GitHub MCP tool - is a finding too.
+  - Every host its prompt tells it to fetch is reachable from your session. A refusal is a finding naming the routine and the host.
+  - Any branch pattern it mandates still falls OUTSIDE every ruleset. Read rulesets with `gh api repos/L337-org/<repo>/rulesets` rather than trusting the prompt's description of them. Only per-repo rulesets are visible to you; never describe org-level ones as checked.
+  - Hands-off and exclusion lists have not outlived what they protect - a pin that no longer exists, a guard test since deleted.
+
+  OUT OF SCOPE: whether each live routine matches its file, which needs the routines API; and the claude-routines repository's own conformance to org standards.
+
+  REPORTING. One line per finding: the routine's file, the instruction or claim, and what you found instead, with the evidence (a path and line, or the command and its output). Never propose the fix. Group findings by routine.
+
+  Under COULD NOT CHECK, every check you could not complete, always: a repository a prompt makes claims about that is not in your working directory, a clone or fetch that failed, a call that was refused, files you could not read. Name the check and what stopped it. A check that did not run must never look like one that passed.
+
+  Then, under UNEXPECTED, anything this prompt did not anticipate that stopped a check completing or left you unsure whether a finding is right: name the check and say what is now unknown.
+
+  If there are no findings, nothing under COULD NOT CHECK and nothing UNEXPECTED, post NOTHING. Otherwise post ONE Slack message to #l337-org (channel id C0BPEKPTP44). No preamble, no summary of what passed, no description of how you checked.

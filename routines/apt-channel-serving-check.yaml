@@ -19,9 +19,9 @@ prompt: |-
 
   WHAT TO DO:
 
-  1. Establish what SHOULD be served. Read `repos.yaml` in L337-org/apt for the source repos and each one's `keep_last_n`. For each source repo, list its GitHub releases that carry a `.deb` asset (`gh release list` then `gh release view <tag> --json assets`) and take the newest `keep_last_n` of them. That set is the expectation. Note the index is generated with `dpkg-scanpackages --multiversion`, so EVERY retained version should appear, not only the newest - if only the newest is listed, that is a real finding.
+  1. Establish what SHOULD be served. Read `repos.yaml` in L337-org/apt for the source repos and each one's `keep_last_n`. For each source repo, list its GitHub releases that carry a `.deb` asset (`gh api --paginate repos/L337-org/<repo>/releases`, where each release carries its `assets`) and take the newest `keep_last_n` of them. That set is the expectation. Note the index is generated with `dpkg-scanpackages --multiversion`, so EVERY retained version should appear, not only the newest - if only the newest is listed, that is a real finding.
 
-  TOOLING: steps below name `gh` for readability; use the equivalent `mcp__github__*` tools, whether or not a `gh` binary is present. Say so only if an MCP tool fails.
+  TOOLING: use `gh api` against the GitHub REST API for everything on GitHub, for example `gh api repos/L337-org/<repo>/releases`. Do not use `gh`'s other subcommands, some of which go through GraphQL, which a routine session refuses. Report it only if `gh api` itself fails.
 
   2. Fetch the live repo metadata over HTTPS from apt.l337.org: the `Release` file, its signature (`Release.gpg` and/or `InRelease`), and the `Packages` index. Use them to determine which package versions the channel is actually offering right now.
      GIVE EVERY FETCH `--retry 2 --retry-connrefused --retry-delay 5 --retry-max-time 90`. A single refused connection is not a finding: both ends are remote and each is occasionally unreachable for a few seconds, and reporting that as a channel fault trains whoever reads you to ignore you. `--retry-connrefused` is the flag that matters, because `--retry` alone treats only timeouts and 408/429/5xx as transient. Do NOT add `--retry-all-errors`: it would retry a 404, and a missing file is a real finding that must surface at once.

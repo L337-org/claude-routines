@@ -113,7 +113,7 @@ _NEGATORS = r"never|not|no|cannot|can[\u2019']t|don[\u2019']t|does\s+not|must\s+
 NEGATED_OPEN_PR_RE = re.compile(rf"\b(?:{_NEGATORS})\b(?:\s+\w+){{0,2}}\s+{_OPEN_PR}", re.IGNORECASE)
 REVIEW_BODY_MARKERS = (
     "READ THE REVIEW BODY, NOT ONLY THE THREADS",
-    "get_reviews",
+    "/pulls/<n>/reviews",
     "Claude review: automatic reviews are paused",
 )
 

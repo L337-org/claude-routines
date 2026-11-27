@@ -87,13 +87,12 @@ as plain prose passes CI, so the reviewer checklist in `AGENTS.md` carries the r
 
 ## GitHub access is not a connector
 
-A routine's GitHub tool access (`mcp__github__*` - reading/creating issues, PRs, releases,
-rulesets, and so on) is provisioned automatically from its `repositories:` grant, not from
-`mcp_connectors`. Checked directly against the live account (`RemoteTrigger action: "list"`, not
-assumed): every routine in this repo currently shows exactly one entry in its live
-`mcp_connections` - `Slack` - including routines whose prompts rely on GitHub MCP tools as a
-fallback and have used them successfully in a real run. There is no attachable "GitHub" connector
-in this account's connector settings for one to point at.
+A routine's GitHub access - reading and creating issues, PRs, releases, rulesets and so on - is
+provisioned from its `repositories:` grant, not from `mcp_connectors`. A routine session reaches
+GitHub through `gh api` against the REST API; the prompts say so in their tooling paragraph, and
+the "Routine self-audit" routine checks from a real session that every tool and command a prompt
+names still works. There is no attachable "GitHub" connector in this account's connector settings
+for one to point at.
 
 **Never add `GitHub` (or similar) to a routine's `mcp_connectors` list.** Unlike `Slack`, it would
 not resolve to any live `connector_uuid`, so it would only make the file look like it needs an
