@@ -62,8 +62,8 @@ jobs:
   action-pins:
     # Every `uses:` names a full commit SHA, or for the shared workflows repository its version
     # tag, checked by the shared copy named here.  That tag is accepted only while a ruleset in
-    # the shared workflows repository limits who can move it to those who can merge there.  No
-    # routine checks pins, so without this job they would be held by discipline alone.
+    # the shared workflows repository limits who can move it to those who can merge there.  Without
+    # this job, these pins would be held by discipline alone.
     runs-on: [ubuntu-latest]
     name: Action pin check
     # A grep over the workflow files.

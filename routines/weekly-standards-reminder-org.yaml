@@ -13,12 +13,11 @@ repositories:
 allowed_tools: [Bash, Read, Grep, Glob]
 mcp_connectors: [Slack]
 note: >-
-  Scope is the judgement calls only. Three things this routine used to do are out of its prompt
-  by design and belong to CI: whether each repository calls the shared CI from
+  Scope is the judgement calls only. Whether each repository calls the shared CI from
   L337-org/github-workflows at the latest release's major-version tag, and the Dependabot entry
-  for announcer-only repositories (the shared hygiene check); and whether links in the .github
-  repository resolve (that repository's link check). Auditing the other routines' prompts moved to
-  the "Routine self-audit" routine. It posts nothing on a clean run. Two dated confirmations sit
+  for announcer-only repositories, belong to the shared hygiene check; whether links in the
+  .github repository resolve belongs to that repository's link check. The routines' own prompts
+  are audited by the "Routine self-audit" routine. Two dated confirmations sit
   behind the NOT CHECKED line. On 2026-08-10 a human confirmed the only rulesets are per-repo,
   covering main, release and feature. On 2026-08-14 a repository_ruleset webhook event was
   confirmed to exist, but GitHub's Slack app cannot subscribe to governance events and Actions has
@@ -44,7 +43,7 @@ prompt: |-
      - Licence headers all-or-nothing across shipped source; test files are out of scope. Where a repo's own tests or CI already enforce its licence-header convention, the whole item is out of scope for that repo: confirm that guard exists, then leave the item out. Otherwise, a header is whatever form that repo's `AGENTS.md`, `CONTRIBUTING.md` or existing modules establish, which need not be a comment: module-level assignments such as `__author__`, `__copyright__` and `__license__` after the module docstring are a header. Find it by parsing each module or searching the whole file, never by reading a fixed number of lines from the top.
      - Lockfile or pinned-requirements consistency with declared dependencies, EXCEPT in docker-mcp, where `uv sync --locked` already fails the build on a stale lockfile.
 
-  2. THE `.github` REPO'S CONTENT. It holds the org homepage (`profile/`) and org-wide standards docs (`CONTRIBUTING.md`, `SECURITY.md`). Check what it SAYS against the other repositories' own files: every repo, product, channel, contact and supported version it names still exists and is described accurately; nothing in it contradicts a per-repo `AGENTS.md`, `README.md` or `SECURITY.md`; and it does not advertise a channel a repository records as paused or retired. Do not fetch its links. Two absences are correct, and presence is the finding in both cases: a distribution channel docker-mcp's `architecture/distribution.md` records as paused, which is deliberately unadvertised; and an infrastructure repo such as `claude-routines` in the Projects table, which lists customer-facing projects only. For a claim about rulesets, read them with `curl -sH "Authorization: Bearer $GH_TOKEN" https://api.github.com/repos/L337-org/<repo>/rulesets`.
+  2. THE `.github` REPO'S CONTENT. It holds the org homepage (`profile/`) and org-wide standards docs (`CONTRIBUTING.md`, `SECURITY.md`). Check what it SAYS against the other repositories' own files: every repo, product, channel, contact and supported version it names still exists and is described accurately; nothing in it contradicts a per-repo `AGENTS.md`, `README.md` or `SECURITY.md`; and it does not advertise a channel a repository records as paused or retired. Do not fetch its links. Two absences are correct, and presence is the finding in both cases: a distribution channel docker-mcp's `architecture/distribution.md` records as paused, which is deliberately unadvertised; and an infrastructure repo such as `claude-routines` in the Projects table, which lists customer-facing projects only. For a claim about rulesets, read them with `gh api repos/L337-org/<repo>/rulesets`.
 
   REPORTING. Every item goes in exactly one of three tiers, organised by repo:
 
@@ -54,8 +53,10 @@ prompt: |-
 
   Each item names the repository and the specific file, workflow or document it concerns. An item that names no such thing is too vague to report - leave it out.
 
+  Under COULD NOT CHECK, every check you could not complete, always: a clone or fetch that failed, a call that was refused, a file you could not read. Name the check and what stopped it. A check that did not run must never look like one that passed.
+
   Then, under UNEXPECTED, anything this prompt did not anticipate that stopped a check completing or left you unsure whether a finding is right: name the check and say what is now unknown. Something odd that you worked around cleanly does not belong there.
 
   End with this one line, verbatim: "Not visible to this session, so never checked: org-level rulesets, ruleset bypass actors, and the org's full repository list." Never expand on it.
 
-  If every tier is empty and nothing is UNEXPECTED, post NOTHING. Otherwise post ONE Slack message to #l337-org (channel id C0BPEKPTP44). No preamble, no summary of what passed, no description of how you checked.
+  If every tier is empty, nothing is under COULD NOT CHECK and nothing is UNEXPECTED, post NOTHING. Otherwise post ONE Slack message to #l337-org (channel id C0BPEKPTP44). No preamble, no summary of what passed, no description of how you checked.
