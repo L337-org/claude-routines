@@ -18,7 +18,7 @@ note: >-
   for announcer-only repositories, belong to the shared hygiene check; whether links in the
   .github repository resolve belongs to that repository's link check. The routines' own prompts
   are audited by the "Routine self-audit" routine. Two dated confirmations sit
-  behind the NOT CHECKED line. On 2026-08-10 a human confirmed the only rulesets are per-repo,
+  behind the closing "never checked" line. On 2026-08-10 a human confirmed the only rulesets are per-repo,
   covering main, release and feature. On 2026-08-14 a repository_ruleset webhook event was
   confirmed to exist, but GitHub's Slack app cannot subscribe to governance events and Actions has
   no repository_ruleset trigger, so notifying on a change would mean standing up a receiver -
