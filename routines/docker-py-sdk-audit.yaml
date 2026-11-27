@@ -34,7 +34,7 @@ prompt: |-
 
   Use the project's `/docker-sdk` skill (see the Docker SDK Policy in `AGENTS.md`). Four categories:
 
-  1. Existing low-level `client.api.*` calls that a high-level SDK method could now replace. Grep `docker_mcp/tools/*.py` for `\.api\b`, NOT for `.api.`: most call sites bind `api = _get_client(host).api` to a local first and then call `api.inspect_service(...)`, so `.api.` misses them and returns what looks exactly like "no category-1 candidates". Scan every tools module, and do not trust a clean grep from the narrower pattern.
+  1. Existing low-level `client.api.*` calls that a high-level SDK method could now replace. Grep `docker_mcp/tools/*.py` for `\.api\b`, NOT for `.api.`: a call site that binds `api = _get_client(host).api` to a local first and then calls `api.inspect_service(...)` is missed by `.api.`, while the rest still match, so a narrower grep can look complete when it is not. Scan every tools module, and do not trust a clean grep from the narrower pattern.
   2. Net-new Engine API surface docker-py exposes that docker-mcp does not yet cover.
   3. **Deprecated surface we still depend on** - anything we pass or call that docker-py or the Engine API has renamed, superseded or marked for removal, so a migration happens on our schedule rather than when removal breaks us. Check parameter names against the Engine API spec (`moby/moby`'s `api/swagger.yaml`), not only docker-py's docstrings, which lag. `architecture/docker-sdk.md` lists the renames already handled; read it before reporting one.
 
@@ -65,7 +65,7 @@ prompt: |-
   ## 4. Implement
 
   - Change the matching `docker_mcp/tools/<module>.py`, and update or add tests in the matching `tests/test_<module>.py`. Do not change anything you did not find in step 1.
-  - **Version: do NOT bump by reflex.** This project has no per-PR bump convention. Check whether the version in `pyproject.toml` has been released - compare it against the latest release tag (`gh api repos/L337-org/docker-mcp/releases/latest --jq .tag_name`, or `git ls-remote --tags`). If that version has **no tag**, it is unreleased and your change rides it: leave every version file alone. Only if the current version IS released do you bump (patch), and then you must move `pyproject.toml`, `manifest.json`, `server.json` (its `version`, the pypi package's `version`, and the version inside both the oci and mcpb `identifier` strings) and `uv.lock`'s self-entry together - `tests/test_pyproject_pins.py` asserts all four agree, so a partial bump fails CI.
+  - **Version: do NOT bump by reflex.** This project has no per-PR bump convention. Check whether the version in `pyproject.toml` has been released - compare it against the latest release tag (`gh api repos/L337-org/docker-mcp/releases/latest --jq .tag_name`, or `git ls-remote --tags`). If that version has **no tag**, it is unreleased and your change rides it: leave every version file alone. Only if the current version IS released do you bump (patch), and then follow the version-bump checklist in `architecture/distribution.md` (the "Release pipeline" section), which names every file that must move together. Change all of them, then run `uv lock`: CI fails on a partial bump.
   - Run `uv run pytest -q`, `uv run ruff check .`, `uv run ruff format --check .` and `uv run pyright`. All must pass before you open anything. Check exit codes rather than eyeballing piped output.
   - If the environment cannot run them at all, that is a blocker to report, not something to skip past - see section 7.
 

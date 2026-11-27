@@ -13,6 +13,7 @@ repositories:
   - https://github.com/L337-org/apt
   - https://github.com/L337-org/.github
   - https://github.com/L337-org/homebrew-tap
+  - https://github.com/L337-org/github-workflows
 allowed_tools: [Bash, Read, Grep, Glob, WebFetch]
 mcp_connectors: [Slack]
 note: >-
